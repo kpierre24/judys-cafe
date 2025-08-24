@@ -5,6 +5,7 @@ A full-featured cafe management system built with Vue 3, TypeScript, and shadcn-
 ## 🚀 Features
 
 ### Core Management Systems
+
 - **Point of Sale (POS)** - Complete transaction processing with multiple payment methods
 - **Inventory Management** - Stock tracking, supplier management, auto-reorder system
 - **Employee Management** - Staff scheduling, time tracking, payroll integration
@@ -12,12 +13,14 @@ A full-featured cafe management system built with Vue 3, TypeScript, and shadcn-
 - **End-of-Day Operations** - Stock reconciliation, cash counting, daily reports
 
 ### Advanced Features
+
 - **Customer Relationship Management (CRM)** - Customer database, loyalty programs, feedback system
 - **Analytics & Business Intelligence** - Sales forecasting, performance metrics, profitability analysis
 - **Mobile Applications Simulation** - Staff app, customer app, manager dashboard, delivery tracking
 - **Hardware Integration Simulation** - POS hardware, kitchen displays, digital menu boards, IoT monitoring
 
 ### Technology Stack
+
 - **Frontend**: Vue 3 with Composition API
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v3 + shadcn-ui components
@@ -30,13 +33,17 @@ A full-featured cafe management system built with Vue 3, TypeScript, and shadcn-
 ## 🏗️ Architecture
 
 ### Branch-Aware Design
+
 The application is designed with complete branch isolation:
+
 - All stores maintain separate data for each branch
 - Role-based access control (Admin, Manager, Cashier)
 - Branch selection system with secure data isolation
 
 ### Component System
+
 Custom shadcn-ui components adapted for Vue:
+
 - Composite components (Tabs, Select, Dialog) with context provision
 - TypeScript support with proper type definitions
 - Consistent design system across all modules
@@ -50,17 +57,20 @@ Custom shadcn-ui components adapted for Vue:
 ## 🛠️ Installation & Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd judys-cafe
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Start development server**
+
    ```bash
    npm run dev
    ```
@@ -94,15 +104,16 @@ npm run type-check   # Run TypeScript type checking
 
 The application includes demo users for testing different access levels:
 
-| Username | Password | Role | Access |
-|----------|----------|------|--------|
-| admin | admin123 | Admin | All branches |
-| manager | manager123 | Manager | Multiple branches |
-| cashier | cashier123 | Cashier | Single branch |
+| Username | Password   | Role    | Access            |
+| -------- | ---------- | ------- | ----------------- |
+| admin    | admin123   | Admin   | All branches      |
+| manager  | manager123 | Manager | Multiple branches |
+| cashier  | cashier123 | Cashier | Single branch     |
 
 ## 🏢 Branch System
 
 The application supports multiple cafe locations:
+
 - **Downtown Branch** - Main location with full operations
 - **Mall Branch** - High-traffic retail location
 - **Airport Branch** - 24/7 operations with limited menu
@@ -110,48 +121,56 @@ The application supports multiple cafe locations:
 ## 📱 Module Overview
 
 ### 1. Dashboard
+
 - Real-time sales metrics
 - Daily performance indicators
 - Quick access to all modules
 - Branch-specific overview
 
 ### 2. Sales & POS
+
 - Product catalog with categories
 - Multiple payment methods (Cash, Card, Mobile)
 - Receipt generation and printing simulation
 - Transaction history and refunds
 
 ### 3. Inventory Management
+
 - Real-time stock levels
 - Low stock alerts and auto-reorder
 - Supplier management
 - Expiry tracking and waste management
 
 ### 4. Employee Management
+
 - Staff scheduling and shift management
 - Time clock with GPS location
 - Performance metrics and payroll integration
 - Role-based permissions
 
 ### 5. Customer Relations (CRM)
+
 - Customer database with purchase history
 - Loyalty program with tier system
 - Promotional campaigns
 - Feedback management
 
 ### 6. Analytics & Reports
+
 - Sales forecasting and trend analysis
 - Profitability analysis by product/branch
 - Employee performance metrics
 - Custom report generation
 
 ### 7. Hardware Integration
+
 - POS hardware simulation (cash drawer, receipt printer, barcode scanner)
 - Kitchen display system for order management
 - Digital menu boards with real-time updates
 - IoT monitoring (temperature, energy, security)
 
 ### 8. Mobile Applications
+
 - Staff mobile interface for schedule and tasks
 - Customer mobile app for ordering and loyalty
 - Manager mobile dashboard for remote monitoring
@@ -196,6 +215,7 @@ The application supports multiple cafe locations:
 ## 🚀 Deployment
 
 The application can be deployed to various platforms:
+
 - Vercel, Netlify (for static hosting)
 - Docker containers
 - Traditional web servers

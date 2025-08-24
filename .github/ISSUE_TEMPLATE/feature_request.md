@@ -60,6 +60,7 @@ Add any other context, screenshots, or examples about the feature request here.
 ## 🏷️ Labels
 
 Please add appropriate labels:
+
 - Priority: `low`, `medium`, `high`, `critical`
 - Component: `ui`, `store`, `auth`, `pos`, `inventory`, etc.
 - Type: `enhancement`, `feature`

@@ -26,9 +26,11 @@ Fixes #(issue_number)
 ## 📸 Screenshots (if applicable)
 
 Before:
+
 <!-- Add screenshot -->
 
 After:
+
 <!-- Add screenshot -->
 
 ## ✅ Checklist
@@ -45,22 +47,26 @@ After:
 ## 🔍 Code Review Checklist
 
 ### Functionality
+
 - [ ] Code accomplishes what it's supposed to do
 - [ ] Logic is correct and handles edge cases
 - [ ] Error handling is appropriate
 
 ### Architecture
+
 - [ ] Follows branch-aware store design patterns
 - [ ] Implements proper role-based access control
 - [ ] Uses appropriate Vue 3 composition patterns
 
 ### Code Quality
+
 - [ ] Code is readable and well-structured
 - [ ] Follows TypeScript best practices
 - [ ] Uses appropriate shadcn-ui component patterns
 - [ ] No unnecessary code duplication
 
 ### Performance
+
 - [ ] No obvious performance issues
 - [ ] Efficient algorithms and data structures
 - [ ] Proper use of Vue reactivity system

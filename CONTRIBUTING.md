@@ -57,6 +57,7 @@ This project adheres to a code of conduct. By participating, you are expected to
 ### Making Changes
 
 1. **Create a feature branch** from `develop`:
+
    ```bash
    git checkout develop
    git pull upstream develop
@@ -66,6 +67,7 @@ This project adheres to a code of conduct. By participating, you are expected to
 2. **Make your changes** following our coding standards
 
 3. **Test your changes**:
+
    ```bash
    npm run test:unit
    npm run lint
@@ -123,6 +125,7 @@ This project adheres to a code of conduct. By participating, you are expected to
 ### Pull Request Process
 
 1. **Update your branch** with the latest changes:
+
    ```bash
    git checkout develop
    git pull upstream develop
@@ -131,6 +134,7 @@ This project adheres to a code of conduct. By participating, you are expected to
    ```
 
 2. **Push your changes**:
+
    ```bash
    git push origin feature/your-feature-name
    ```
