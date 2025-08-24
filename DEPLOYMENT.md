@@ -1,3 +1,227 @@
+# Deployment Guide for Judy's Cafe
+
+This guide will walk you through deploying Judy's Cafe to Supabase (backend) and Vercel (frontend).
+
+## Prerequisites
+
+- [Supabase account](https://supabase.com/)
+- [Vercel account](https://vercel.com/)
+- [GitHub account](https://github.com/) (for CI/CD)
+- Node.js 18+ installed locally
+
+## 🗄️ Step 1: Set up Supabase Database
+
+### 1.1 Create a New Supabase Project
+
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Click "New Project"
+3. Choose your organization
+4. Fill in project details:
+   - **Name**: `judys-cafe`
+   - **Database Password**: Create a strong password
+   - **Region**: Choose closest to your users
+5. Click "Create new project"
+
+### 1.2 Configure the Database
+
+1. Wait for your project to be ready (2-3 minutes)
+2. Go to the **SQL Editor** in your Supabase dashboard
+3. Copy the contents of `database/schema.sql` from this repository
+4. Paste it into the SQL Editor and run it
+5. This will create all necessary tables, indexes, and policies
+
+### 1.3 Get Your Supabase Credentials
+
+1. Go to **Settings** → **API**
+2. Copy the following values:
+   - **Project URL** (e.g., `https://your-project-id.supabase.co`)
+   - **Anon/Public Key** (starts with `eyJ...`)
+
+### 1.4 Set up Authentication (Optional)
+
+If you want to enable user authentication:
+1. Go to **Authentication** → **Settings**
+2. Configure your authentication providers
+3. Set up email templates if using email auth
+
+## 🚀 Step 2: Deploy to Vercel
+
+### 2.1 Prepare Your Repository
+
+1. Ensure your code is pushed to GitHub
+2. Make sure all dependencies are installed and the project builds locally:
+   ```bash
+   npm install
+   npm run build
+   ```
+
+### 2.2 Connect to Vercel
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click "New Project"
+3. Import your GitHub repository
+4. Vercel will auto-detect it's a Vite project
+
+### 2.3 Configure Environment Variables
+
+In Vercel project settings, add these environment variables:
+
+```
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_APP_NAME=Judy's Cafe
+VITE_APP_VERSION=1.0.0
+VITE_APP_ENVIRONMENT=production
+```
+
+### 2.4 Deploy
+
+1. Click "Deploy"
+2. Vercel will build and deploy your application
+3. You'll get a deployment URL (e.g., `https://judys-cafe.vercel.app`)
+
+## 🔄 Step 3: Set up CI/CD (Optional but Recommended)
+
+### 3.1 GitHub Secrets
+
+Add these secrets to your GitHub repository:
+1. Go to your GitHub repo → **Settings** → **Secrets and variables** → **Actions**
+2. Add the following secrets:
+
+```
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VERCEL_TOKEN=your-vercel-token
+ORG_ID=your-vercel-org-id
+PROJECT_ID=your-vercel-project-id
+```
+
+### 3.2 Get Vercel Credentials
+
+1. Go to [Vercel Account Settings](https://vercel.com/account/tokens)
+2. Create a new token and copy it (this is your `VERCEL_TOKEN`)
+3. Go to your project settings in Vercel
+4. Copy the Project ID and Organization ID
+
+### 3.3 GitHub Actions Workflow
+
+The workflow file is already created at `.github/workflows/ci-cd.yml`. This will:
+- Run ESLint and Prettier checks
+- Run TypeScript validation
+- Run tests
+- Build the application
+- Deploy to Vercel (on main branch)
+
+## 🏠 Step 4: Local Development Setup
+
+### 4.1 Environment Variables
+
+1. Copy `.env.local.template` to `.env.local`
+2. Fill in your Supabase credentials:
+   ```
+   VITE_SUPABASE_URL=https://your-project-id.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key-here
+   VITE_APP_NAME=Judy's Cafe
+   VITE_APP_VERSION=1.0.0
+   VITE_APP_ENVIRONMENT=development
+   ```
+
+### 4.2 Install Dependencies and Run
+
+```bash
+npm install
+npm run dev
+```
+
+## 🔧 Step 5: Post-Deployment Configuration
+
+### 5.1 Custom Domain (Optional)
+
+1. In Vercel, go to your project settings
+2. Go to "Domains"
+3. Add your custom domain
+4. Follow Vercel's instructions to configure DNS
+
+### 5.2 Performance Monitoring
+
+1. Enable Vercel Analytics in your project settings
+2. Consider adding error tracking (Sentry, etc.)
+
+### 5.3 Database Backups
+
+1. In Supabase, go to **Settings** → **Database**
+2. Enable automated backups
+3. Consider setting up additional backup strategies for production
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+1. **Build Fails**
+   - Check environment variables are set correctly
+   - Ensure TypeScript errors are fixed locally first
+   - Check Vercel build logs
+
+2. **Database Connection Issues**
+   - Verify Supabase URL and key are correct
+   - Check if RLS policies are correctly configured
+   - Ensure your domain is whitelisted in Supabase
+
+3. **Authentication Issues**
+   - Check Supabase Auth configuration
+   - Verify redirect URLs in Supabase settings
+   - Ensure proper RLS policies for user access
+
+### Performance Tips
+
+1. **Optimize Images**: Use Vercel's automatic image optimization
+2. **Enable Caching**: Configure proper cache headers
+3. **Bundle Analysis**: Use `npm run build` and analyze bundle size
+4. **Database Optimization**: Add proper indexes for frequently queried data
+
+## 📊 Monitoring and Analytics
+
+### Vercel Analytics
+- Enable in project settings for traffic insights
+- Monitor Core Web Vitals
+
+### Supabase Dashboard
+- Monitor database performance
+- Check API usage and limits
+- Review authentication metrics
+
+## 🔒 Security Considerations
+
+1. **Environment Variables**: Never commit `.env.local` to version control
+2. **RLS Policies**: Review and customize database policies for your use case
+3. **HTTPS**: Always use HTTPS in production (Vercel provides this automatically)
+4. **API Keys**: Regularly rotate your Supabase keys
+5. **CORS**: Configure proper CORS settings in Supabase
+
+## 📈 Scaling Considerations
+
+1. **Database**: Supabase offers different pricing tiers for scaling
+2. **CDN**: Vercel's global CDN handles frontend scaling
+3. **Caching**: Implement proper caching strategies
+4. **Database Optimization**: Add indexes, optimize queries as needed
+
+## 🆘 Support Resources
+
+- [Supabase Documentation](https://supabase.com/docs)
+- [Vercel Documentation](https://vercel.com/docs)
+- [Vue.js Documentation](https://vuejs.org/guide/)
+- [Vite Documentation](https://vitejs.dev/guide/)
+
+## 🔄 Updating Your Deployment
+
+1. Push changes to your main branch
+2. GitHub Actions will automatically build and deploy
+3. Alternatively, trigger manual deployments in Vercel dashboard
+4. Database schema changes require manual SQL execution in Supabase
+
+---
+
+**Note**: This deployment setup provides a production-ready foundation. Customize the configuration based on your specific requirements and scale as needed.
 # Deployment Guide
 
 This guide covers deployment options for Judy's Cafe application.
