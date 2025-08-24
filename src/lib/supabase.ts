@@ -228,6 +228,107 @@ export interface Database {
           transaction_date?: string
         }
       }
+      employees: {
+        Row: {
+          id: string
+          employee_id: string
+          first_name: string
+          last_name: string
+          email: string | null
+          phone: string | null
+          position: string
+          department: string | null
+          hourly_rate: number | null
+          hire_date: string
+          status: 'active' | 'inactive' | 'terminated'
+          address: string | null
+          emergency_contact: any
+          availability: any
+          branch_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          employee_id: string
+          first_name: string
+          last_name: string
+          email?: string | null
+          phone?: string | null
+          position: string
+          department?: string | null
+          hourly_rate?: number | null
+          hire_date?: string
+          status?: 'active' | 'inactive' | 'terminated'
+          address?: string | null
+          emergency_contact?: any
+          availability?: any
+          branch_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          employee_id?: string
+          first_name?: string
+          last_name?: string
+          email?: string | null
+          phone?: string | null
+          position?: string
+          department?: string | null
+          hourly_rate?: number | null
+          hire_date?: string
+          status?: 'active' | 'inactive' | 'terminated'
+          address?: string | null
+          emergency_contact?: any
+          availability?: any
+          branch_id?: string
+          updated_at?: string
+        }
+      }
+      customers: {
+        Row: {
+          id: string
+          customer_id: string
+          first_name: string
+          last_name: string
+          email: string | null
+          phone: string | null
+          loyalty_card: any
+          preferences: any
+          is_active: boolean
+          branch_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id: string
+          first_name: string
+          last_name: string
+          email?: string | null
+          phone?: string | null
+          loyalty_card?: any
+          preferences?: any
+          is_active?: boolean
+          branch_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string
+          first_name?: string
+          last_name?: string
+          email?: string | null
+          phone?: string | null
+          loyalty_card?: any
+          preferences?: any
+          is_active?: boolean
+          branch_id?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
