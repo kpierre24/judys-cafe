@@ -294,7 +294,7 @@ function getOrderTypeIcon(type: string) {
                   <Input
                     :value="(salesStore.currentOrder.tip || 0).toString()"
                     @update:modelValue="
-                      salesStore.updateCurrentOrder({ tip: parseFloat($event) || 0 })
+                      salesStore.updateCurrentOrder({ tip: parseFloat($event as string) || 0 })
                     "
                     type="number"
                     min="0"
@@ -317,13 +317,13 @@ function getOrderTypeIcon(type: string) {
             <div class="mt-4 space-y-2">
               <Input
                 :value="salesStore.currentOrder.customerName"
-                @update:modelValue="salesStore.updateCurrentOrder({ customerName: $event })"
+                @update:modelValue="salesStore.updateCurrentOrder({ customerName: String($event) })"
                 placeholder="Customer name (optional)"
                 class="text-sm"
               />
               <Input
                 :value="salesStore.currentOrder.customerPhone"
-                @update:modelValue="salesStore.updateCurrentOrder({ customerPhone: $event })"
+                @update:modelValue="salesStore.updateCurrentOrder({ customerPhone: String($event) })"
                 placeholder="Phone number (optional)"
                 class="text-sm"
               />
@@ -372,7 +372,7 @@ function getOrderTypeIcon(type: string) {
           <label class="block text-sm font-medium text-gray-700 mb-1">Amount Received</label>
           <Input
             :value="paymentAmount.toString()"
-            @update:modelValue="paymentAmount = parseFloat($event) || 0"
+            @update:modelValue="paymentAmount = parseFloat($event as string) || 0"
             type="number"
             min="0"
             step="0.01"

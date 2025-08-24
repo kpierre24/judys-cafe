@@ -32,8 +32,8 @@ function handleClick() {
     "
     @click="handleClick"
   >
-    <span v-if="selectedValue?.value" class="block truncate">
-      <slot name="value" :value="selectedValue.value">{{ selectedValue.value }}</slot>
+    <span v-if="selectedValue" class="block truncate">
+      <slot name="value" :value="selectedValue">{{ selectedValue }}</slot>
     </span>
     <span v-else class="text-muted-foreground">{{ props.placeholder || 'Select...' }}</span>
     <svg

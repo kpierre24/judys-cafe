@@ -295,8 +295,8 @@ export const useEmployeeStore = defineStore('employees', () => {
 
       data.employees.forEach((employee) => {
         const dayName = date.toLocaleDateString('en-US', {
-          weekday: 'toLowerCase',
-        }) as keyof typeof employee.availability
+          weekday: 'long',
+        }).toLowerCase() as keyof typeof employee.availability
         const availability = employee.availability[dayName]
 
         if (availability.available && availability.start && availability.end) {

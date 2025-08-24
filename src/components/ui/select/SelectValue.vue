@@ -18,6 +18,6 @@ const displayValue = computed(() => {
 
 <template>
   <span :class="cn('block truncate', props.class)">
-    <slot :value="selectedValue?.value">{{ displayValue }}</slot>
+    <slot :value="selectedValue">{{ displayValue }}</slot>
   </span>
 </template>

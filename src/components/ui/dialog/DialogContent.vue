@@ -25,7 +25,7 @@ function handleContentClick(event: MouseEvent) {
 <template>
   <Teleport to="body">
     <div
-      v-if="isOpen?.value"
+      v-if="isOpen"
       class="fixed inset-0 z-50 flex items-center justify-center"
       @click="handleBackdropClick"
     >

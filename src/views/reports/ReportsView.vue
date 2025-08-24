@@ -48,7 +48,7 @@ const salesData = {
     topProducts: [
       { name: 'Cappuccino', quantity: 1350, revenue: 6075.0 },
       { name: 'Americano', quantity: 960, revenue: 3360.0 },
-      { name: 'Latte', quantity: 840, volume: 3990.0 },
+      { name: 'Latte', quantity: 840, revenue: 3990.0 },
       { name: 'Croissant', quantity: 750, revenue: 2625.0 },
     ],
   },
@@ -223,9 +223,9 @@ function printReport() {
                 </div>
               </div>
               <div class="text-right">
-                <p class="font-bold text-green-600">${{ product.revenue.toFixed(2) }}</p>
+                <p class="font-bold text-green-600">${{ (product.revenue ?? 0).toFixed(2) }}</p>
                 <p class="text-sm text-gray-600">
-                  ${{ (product.revenue / product.quantity).toFixed(2) }}/unit
+                  ${{ ((product.revenue ?? 0) / product.quantity).toFixed(2) }}/unit
                 </p>
               </div>
             </div>
@@ -241,7 +241,7 @@ function printReport() {
         <CardContent>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div
-              v-for="hour in currentSalesData.hourlyBreakdown"
+              v-for="hour in (currentSalesData as any).hourlyBreakdown || []"
               :key="hour.hour"
               class="bg-gray-50 p-4 rounded-lg"
             >

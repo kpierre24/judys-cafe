@@ -28,7 +28,7 @@ const branchesStore = useBranchesStore()
 const activeTab = ref('overview')
 const selectedDevice = ref<IoTDevice | null>(null)
 const autoRefresh = ref(true)
-const refreshInterval = ref<NodeJS.Timeout | null>(null)
+const refreshInterval = ref<number | null>(null)
 
 // Computed
 const systemStats = computed(() => {
@@ -321,7 +321,8 @@ onUnmounted(() => {
 
           <!-- Device Status by Type -->
           <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            <Card v-for="(devices, type) in devicesByType" :key="type" v-if="devices.length > 0">
+            <Card v-for="(devices, type) in devicesByType" :key="type">
+              <template v-if="devices.length > 0">
               <CardHeader class="pb-3">
                 <h3 class="text-lg font-semibold flex items-center capitalize">
                   <component :is="getDeviceIcon(type as any)" class="h-5 w-5 mr-2" />
@@ -353,6 +354,7 @@ onUnmounted(() => {
                   </div>
                 </div>
               </CardContent>
+              </template>
             </Card>
           </div>
 

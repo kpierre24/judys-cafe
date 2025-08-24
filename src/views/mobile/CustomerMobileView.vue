@@ -213,6 +213,14 @@ function placeOrder() {
   currentTab.value = 'orders'
 }
 
+function addItemToCartAndClose() {
+  if (selectedItem.value) {
+    addToCart(selectedItem.value)
+    showItemDetails.value = false
+    selectedItem.value = null
+  }
+}
+
 function changeTab(tab: string) {
   currentTab.value = tab
 }
@@ -336,9 +344,7 @@ function changeTab(tab: string) {
               <CardContent class="p-4">
                 <div class="flex items-center space-x-4">
                   <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                    <span class="text-xl">{{
-                      product.category === 'beverages' ? '☕' : '🥐'
-                    }}</span>
+                    <span class="text-xl">{{ product.category === 'beverage' ? '☕' : '🥐' }}</span>
                   </div>
                   <div class="flex-1">
                     <h4 class="font-semibold">{{ product.name }}</h4>
@@ -640,19 +646,14 @@ function changeTab(tab: string) {
         </div>
         <div class="space-y-4">
           <div class="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
-            <span class="text-4xl">{{ selectedItem?.category === 'beverages' ? '☕' : '🥐' }}</span>
+            <span class="text-4xl">{{ selectedItem?.category === 'beverage' ? '☕' : '🥐' }}</span>
           </div>
           <p class="text-gray-600">{{ selectedItem?.description }}</p>
           <div class="flex items-center justify-between">
             <span class="text-xl font-bold text-green-600">{{
               formatCurrency(selectedItem?.price || 0)
             }}</span>
-            <Button
-              @click="
-                selectedItem && addToCart(selectedItem)
-                showItemDetails = false
-              "
-            >
+            <Button @click="addItemToCartAndClose">
               Add to Cart
             </Button>
           </div>

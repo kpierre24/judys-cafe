@@ -26,7 +26,7 @@ const branchesStore = useBranchesStore()
 const selectedStation = ref<'all' | 'grill' | 'cold_prep' | 'coffee' | 'dessert'>('all')
 const autoRefresh = ref(true)
 const showSettings = ref(false)
-const refreshInterval = ref<NodeJS.Timeout | null>(null)
+const refreshInterval = ref<number | null>(null)
 const currentTime = ref(new Date())
 
 // Settings

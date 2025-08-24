@@ -898,7 +898,7 @@ export const useHardwareStore = defineStore('hardware', () => {
       job.status = 'completed'
       deviceStatuses.receiptPrinter.paperLevel = Math.max(
         10,
-        deviceStatuses.receiptPrinter.paperLevel - 2,
+        (deviceStatuses.receiptPrinter.paperLevel as number) - 2,
       )
       deviceStatuses.receiptPrinter.queueLength = pendingReceipts.value.length
     }, 2000)
@@ -930,7 +930,7 @@ export const useHardwareStore = defineStore('hardware', () => {
 
     scanHistory.value.push(scanResult)
     deviceStatuses.barcodeScanner.lastScan = new Date()
-    deviceStatuses.barcodeScanner.scanCount++
+    deviceStatuses.barcodeScanner.scanCount = (deviceStatuses.barcodeScanner.scanCount as number) + 1
 
     return scanResult
   }
@@ -947,8 +947,8 @@ export const useHardwareStore = defineStore('hardware', () => {
 
     if (method === 'card' || method === 'contactless') {
       // Simulate card types
-      const cardTypes = ['visa', 'mastercard', 'amex', 'discover']
-      transaction.cardType = cardTypes[Math.floor(Math.random() * cardTypes.length)] as string
+      const cardTypes: ('visa' | 'mastercard' | 'amex' | 'discover')[] = ['visa', 'mastercard', 'amex', 'discover']
+      transaction.cardType = cardTypes[Math.floor(Math.random() * cardTypes.length)]
       transaction.lastFourDigits = Math.floor(Math.random() * 9999)
         .toString()
         .padStart(4, '0')
@@ -1176,7 +1176,7 @@ export const useHardwareStore = defineStore('hardware', () => {
         ],
         status: 'new' as const,
         priority: Math.random() > 0.8 ? ('high' as const) : ('normal' as const),
-        orderType: ['dine_in', 'takeout', 'delivery'][Math.floor(Math.random() * 3)] as const,
+        orderType: (['dine_in', 'takeout', 'delivery'] as const)[Math.floor(Math.random() * 3)],
         estimatedTime: Math.floor(Math.random() * 10) + 5,
         station: 'coffee' as const,
         tableNumber: Math.random() > 0.5 ? `T${Math.floor(Math.random() * 20) + 1}` : undefined,

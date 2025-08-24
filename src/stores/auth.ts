@@ -36,7 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
     } else {
       // Cashiers can only access their assigned branch
       return user.value.branch_id
-        ? branchesStore.branches.filter((branch) => branch.id === user.value.branch_id)
+        ? branchesStore.branches.filter((branch) => branch.id === user.value!.branch_id)
         : []
     }
   })

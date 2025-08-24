@@ -275,7 +275,7 @@ onMounted(() => {
 
             <div class="flex items-center space-x-2 text-sm text-gray-600">
               <ClockIcon class="h-4 w-4" />
-              <span>ETA: {{ formatTime(currentDelivery.estimatedDelivery) }}</span>
+              <span>ETA: {{ currentDelivery.estimatedDelivery ? formatTime(currentDelivery.estimatedDelivery) : 'TBD' }}</span>
             </div>
 
             <div class="space-y-1">
@@ -393,7 +393,7 @@ onMounted(() => {
               </div>
               <div class="flex items-center space-x-2">
                 <ClockIcon class="h-4 w-4 text-gray-400" />
-                <span>ETA: {{ formatTime(delivery.estimatedDelivery) }}</span>
+                <span>ETA: {{ delivery.estimatedDelivery ? formatTime(delivery.estimatedDelivery) : 'TBD' }}</span>
               </div>
             </div>
 

@@ -138,7 +138,7 @@
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div v-for="(denomination, key) in coinDenominations" :key="key">
               <label class="block text-sm font-medium text-gray-700 mb-1">
-                {{ formatCoinLabel(key as string, denomination) }}
+                {{ formatCoinLabel(key as string) }}
               </label>
               <div class="flex items-center space-x-2">
                 <input

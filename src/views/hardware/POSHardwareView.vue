@@ -77,7 +77,7 @@ async function toggleCashDrawer() {
   if (hardwareStore.cashDrawerOpen) {
     hardwareStore.closeCashDrawer()
   } else {
-    await hardwareStore.openCashDrawer('Manual operation')
+    await hardwareStore.openCashDrawer()
   }
 }
 
@@ -346,7 +346,7 @@ function changeTab(tab: string) {
                     <p class="text-sm text-gray-600">Last Opened</p>
                     <p class="font-medium">
                       {{
-                        hardwareStore.deviceStatuses.cashDrawer.lastOpened?.toLocaleTimeString() ||
+                        (hardwareStore.deviceStatuses.cashDrawer.lastOpened as Date)?.toLocaleTimeString() ||
                         'Never'
                       }}
                     </p>
@@ -660,7 +660,7 @@ function changeTab(tab: string) {
                 :key="key"
                 class="flex justify-between"
               >
-                <span class="capitalize">{{ key.replace(/([A-Z])/g, ' $1').trim() }}:</span>
+                <span class="capitalize">{{ String(key).replace(/([A-Z])/g, ' $1').trim() }}:</span>
                 <span>{{ value }}</span>
               </div>
             </div>

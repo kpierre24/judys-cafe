@@ -6,13 +6,28 @@ interface Props {
   class?: HTMLAttributes['class']
   type?: string
   placeholder?: string
-  modelValue?: string
+  modelValue?: string | number
+  min?: string | number
+  max?: string | number
+  step?: string | number
 }
 
 defineProps<Props>()
-defineEmits<{
-  (e: 'update:modelValue', value: string): void
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: string | number): void
 }>()
+
+function handleInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const value = target.value
+
+  // If it's a number input, emit as number, otherwise as string
+  if (target.type === 'number' && value !== '') {
+    emit('update:modelValue', Number(value))
+  } else {
+    emit('update:modelValue', value)
+  }
+}
 </script>
 
 <template>
@@ -26,6 +41,9 @@ defineEmits<{
     :type="type || 'text'"
     :placeholder="placeholder"
     :value="modelValue"
-    @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+    :min="min"
+    :max="max"
+    :step="step"
+    @input="handleInput"
   />
 </template>

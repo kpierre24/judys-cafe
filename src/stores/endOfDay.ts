@@ -192,7 +192,7 @@ export const useEndOfDayStore = defineStore('endOfDay', () => {
     }
 
     isStockCheckInProgress.value = true
-    currentStockCheck.value = inventoryStore.items.map((item) => ({
+    currentStockCheck.value = inventoryStore.inventoryItems.map((item: any) => ({
       inventoryId: item.id,
       name: item.name,
       expectedCount: item.currentStock,
@@ -228,7 +228,7 @@ export const useEndOfDayStore = defineStore('endOfDay', () => {
     currentStockCheck.value.forEach((stockItem) => {
       if (stockItem.difference !== 0) {
         // Update inventory with actual count
-        inventoryStore.updateItem(stockItem.inventoryId, {
+        inventoryStore.updateInventoryItem(stockItem.inventoryId, {
           currentStock: stockItem.actualCount,
         })
       }

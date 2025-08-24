@@ -80,7 +80,7 @@ const newBranch = ref({
   email: '',
   manager: '',
   openingHours: '',
-  status: 'active' as const,
+  status: 'active' as 'active' | 'inactive' | 'maintenance',
 })
 
 // Functions

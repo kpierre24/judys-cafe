@@ -59,16 +59,19 @@ Vercel offers excellent Vue.js support with zero configuration.
 #### Manual Deployment
 
 1. **Install Vercel CLI**
+
    ```bash
    npm install -g vercel
    ```
 
 2. **Login to Vercel**
+
    ```bash
    vercel login
    ```
 
 3. **Deploy**
+
    ```bash
    vercel
    ```
@@ -146,11 +149,13 @@ Create `netlify.toml` in project root:
 ### AWS S3 + CloudFront
 
 1. **Create S3 Bucket**
+
    ```bash
    aws s3 mb s3://judys-cafe-app
    ```
 
 2. **Configure Static Website Hosting**
+
    ```bash
    aws s3 website s3://judys-cafe-app \
      --index-document index.html \
@@ -158,6 +163,7 @@ Create `netlify.toml` in project root:
    ```
 
 3. **Build and Upload**
+
    ```bash
    npm run build
    aws s3 sync dist/ s3://judys-cafe-app --delete
@@ -203,7 +209,7 @@ services:
   app:
     build: .
     ports:
-      - "80:80"
+      - '80:80'
     environment:
       - NODE_ENV=production
     restart: unless-stopped
@@ -227,6 +233,7 @@ docker-compose up -d
 ### Development
 
 Create `.env.local`:
+
 ```env
 VITE_APP_ENVIRONMENT=development
 VITE_DEV_SERVER_PORT=5173
@@ -241,6 +248,7 @@ Set environment variables in your deployment platform:
 - **GitHub Pages**: Repository Settings → Secrets and Variables
 
 Required variables:
+
 ```env
 VITE_APP_ENVIRONMENT=production
 VITE_APP_NAME="Judy's Cafe"
@@ -250,16 +258,19 @@ VITE_APP_VERSION="1.0.0"
 ## Custom Domain Setup
 
 ### Vercel
+
 1. Go to Project Settings → Domains
 2. Add your custom domain
 3. Configure DNS records as instructed
 
 ### Netlify
+
 1. Go to Site Settings → Domain Management
 2. Add custom domain
 3. Update DNS records
 
 ### CloudFront
+
 1. Request SSL certificate in AWS Certificate Manager
 2. Create Route 53 hosted zone
 3. Update CloudFront distribution with custom domain
@@ -272,12 +283,12 @@ Add error tracking service (Sentry example):
 
 ```typescript
 // main.ts
-import * as Sentry from "@sentry/vue"
+import * as Sentry from '@sentry/vue'
 
 if (import.meta.env.PROD) {
   Sentry.init({
     app,
-    dsn: "YOUR_SENTRY_DSN",
+    dsn: 'YOUR_SENTRY_DSN',
     environment: import.meta.env.VITE_APP_ENVIRONMENT,
   })
 }
@@ -295,11 +306,11 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['vue', 'vue-router', 'pinia'],
-          ui: ['@heroicons/vue']
-        }
-      }
-    }
-  }
+          ui: ['@heroicons/vue'],
+        },
+      },
+    },
+  },
 })
 ```
 
@@ -311,10 +322,12 @@ Add Google Analytics:
 <!-- index.html -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'GA_MEASUREMENT_ID');
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag('js', new Date())
+  gtag('config', 'GA_MEASUREMENT_ID')
 </script>
 ```
 
@@ -338,13 +351,14 @@ Add Google Analytics:
 ### Performance Optimization
 
 1. **Code Splitting**
+
    ```typescript
    // router/index.ts
    const routes = [
      {
        path: '/dashboard',
-       component: () => import('../views/DashboardView.vue')
-     }
+       component: () => import('../views/DashboardView.vue'),
+     },
    ]
    ```
 
@@ -354,8 +368,8 @@ Add Google Analytics:
    export default defineConfig({
      build: {
        assetsInlineLimit: 4096,
-       cssCodeSplit: true
-     }
+       cssCodeSplit: true,
+     },
    })
    ```
 
@@ -363,13 +377,16 @@ Add Google Analytics:
 
 1. **Environment Variables**
    - Never commit sensitive data
-   - Use VITE_ prefix for client-side variables
+   - Use VITE\_ prefix for client-side variables
    - Validate environment in CI/CD
 
 2. **Content Security Policy**
+
    ```html
-   <meta http-equiv="Content-Security-Policy" 
-         content="default-src 'self'; script-src 'self' 'unsafe-inline';">
+   <meta
+     http-equiv="Content-Security-Policy"
+     content="default-src 'self'; script-src 'self' 'unsafe-inline';"
+   />
    ```
 
 3. **HTTPS**
