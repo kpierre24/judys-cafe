@@ -1,0 +1,20 @@
+<script setup lang="ts">
+import { type HTMLAttributes } from 'vue'
+import { type BadgeVariants, badgeVariants } from './index'
+import { cn } from '@/lib/utils'
+
+interface Props {
+  variant?: BadgeVariants['variant']
+  class?: HTMLAttributes['class']
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+})
+</script>
+
+<template>
+  <div :class="cn(badgeVariants({ variant: props.variant }), props.class)">
+    <slot />
+  </div>
+</template>
