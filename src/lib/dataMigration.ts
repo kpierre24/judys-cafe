@@ -3,12 +3,12 @@ import type { Branch, Product, InventoryItem } from './supabaseService'
 
 /**
  * Data Migration Helper
- * 
+ *
  * This helper provides functions to migrate existing local data to Supabase.
  * Use this during the transition period or for initial data seeding.
  */
 export class DataMigration {
-  
+
   /**
    * Migrate sample branches to Supabase
    */
@@ -53,7 +53,7 @@ export class DataMigration {
     ]
 
     const migratedBranches: Branch[] = []
-    
+
     for (const branch of sampleBranches) {
       try {
         const created = await SupabaseService.createBranch(branch)
@@ -83,7 +83,7 @@ export class DataMigration {
       },
       {
         name: "Americano",
-        category: "beverage", 
+        category: "beverage",
         price: 3.75,
         description: "Espresso with hot water",
         is_available: true,
@@ -237,19 +237,19 @@ export class DataMigration {
   static async runCompleteMigration() {
     try {
       console.log('🚀 Starting data migration to Supabase...')
-      
+
       // Check Supabase connection
       const isConnected = await SupabaseService.checkConnection()
       if (!isConnected) {
         throw new Error('Cannot connect to Supabase. Check your configuration.')
       }
-      
+
       console.log('✅ Supabase connection verified')
 
       // Migrate branches
       console.log('\n📍 Migrating branches...')
       const branches = await this.migrateBranches()
-      
+
       if (branches.length === 0) {
         throw new Error('No branches were migrated successfully')
       }
@@ -258,7 +258,7 @@ export class DataMigration {
       for (const branch of branches) {
         console.log(`\n🍕 Migrating products for ${branch.name}...`)
         await this.migrateProducts(branch.id)
-        
+
         console.log(`\n📦 Migrating inventory for ${branch.name}...`)
         await this.migrateInventoryItems(branch.id)
       }
@@ -268,7 +268,7 @@ export class DataMigration {
       console.log(`- Branches: ${branches.length}`)
       console.log(`- Products per branch: ~8`)
       console.log(`- Inventory items per branch: ~5`)
-      
+
       return {
         success: true,
         branches: branches.length,
@@ -303,18 +303,18 @@ export class DataMigration {
    */
   static async resetDatabase() {
     console.warn('⚠️ This will delete all data in the database!')
-    
+
     try {
       // This is a simplified reset - in practice you'd want more robust cleanup
       const branches = await SupabaseService.getBranches()
-      
+
       for (const branch of branches) {
         // Delete products
         // Delete inventory items
         // Delete other related data
         // Finally delete branch
       }
-      
+
       console.log('🗑️ Database reset completed')
     } catch (error) {
       console.error('❌ Database reset failed:', error)
@@ -330,7 +330,7 @@ if (typeof window !== 'undefined') {
   (window as any).runMigration = () => {
     return DataMigration.runCompleteMigration()
   }
-  
+
   (window as any).checkMigration = () => {
     return DataMigration.isMigrationNeeded()
   }

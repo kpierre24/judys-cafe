@@ -7,7 +7,7 @@ This guide will walk you through deploying Judy's Cafe to Supabase (backend) and
 - [Supabase account](https://supabase.com/)
 - [Vercel account](https://vercel.com/)
 - [GitHub account](https://github.com/) (for CI/CD)
-- Node.js 18+ installed locally
+- **Node.js 20.19+ or 22.12+** installed locally (required for Vite 7+)
 
 ## 🗄️ Step 1: Set up Supabase Database
 
@@ -157,7 +157,21 @@ npm run dev
 
 ### Common Issues
 
-1. **Build Fails**
+1. **Node.js Version Error ("Vite requires Node.js version 20.19+ or 22.12+")**
+   - **Problem**: Deployment fails with Node.js version error and `crypto.hash is not a function`
+   - **Solution**: 
+     - Ensure your GitHub Actions workflow uses Node.js 20+ (already configured)
+     - For Vercel: The deployment should automatically use Node.js 20 (configured in vercel.json)
+     - For local development: Use Node Version Manager (nvm):
+       ```bash
+       # Install Node.js 20.19.0
+       nvm install 20.19.0
+       nvm use 20.19.0
+       ```
+     - Check `.nvmrc` file is present in your project root
+   - **Verification**: Run `node --version` to confirm version is 20.19+ or 22.12+
+
+2. **Build Fails**
    - Check environment variables are set correctly
    - Ensure TypeScript errors are fixed locally first
    - Check Vercel build logs
