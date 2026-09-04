@@ -125,7 +125,7 @@ const router = createRouter({
   ],
 })
 
-// Navigation guard for authentication
+// Navigation guard for authentication and roles
 router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.getItem('auth_token') // Simple auth check
 
@@ -134,6 +134,19 @@ router.beforeEach((to, from, next) => {
   } else if (to.path === '/login' && isAuthenticated) {
     next('/')
   } else {
+    if (isAuthenticated) {
+      try {
+        const userObj = JSON.parse(localStorage.getItem('auth_user') || '{}')
+        if (userObj && userObj.role === 'cashier') {
+          const allowedPaths = ['/sales', '/receipts', '/end-of-day']
+          if (!allowedPaths.includes(to.path)) {
+            return next('/sales')
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing user role in router guard', e)
+      }
+    }
     next()
   }
 })

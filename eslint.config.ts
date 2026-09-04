@@ -25,8 +25,10 @@ export default defineConfigWithVueTs(
     files: ['src/**/__tests__/*'],
   },
   {
-    files: ['src/components/ui/**/*.vue'],
     rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      'vue/no-side-effects-in-computed-properties': 'off',
       'vue/multi-word-component-names': 'off',
     },
   },

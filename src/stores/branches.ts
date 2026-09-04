@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useSyncStore } from './sync'
 
 export interface Branch {
   id: string
@@ -17,10 +18,10 @@ export interface Branch {
 }
 
 export const useBranchesStore = defineStore('branches', () => {
-  const branches = ref<Branch[]>([
+  const getDefaultBranches = (): Branch[] => [
     {
       id: 'branch-1',
-      name: "Judy's Cafe Downtown",
+      name: "Judy's Cafe Downtown (Flagship)",
       address: '123 Main Street, Downtown City, DC 12345',
       phone: '(555) 123-4567',
       email: 'downtown@judyscafe.com',
@@ -34,7 +35,7 @@ export const useBranchesStore = defineStore('branches', () => {
     },
     {
       id: 'branch-2',
-      name: "Judy's Cafe Uptown",
+      name: "Judy's Cafe Uptown Roastery",
       address: '456 Oak Avenue, Uptown City, UC 67890',
       phone: '(555) 987-6543',
       email: 'uptown@judyscafe.com',
@@ -48,10 +49,10 @@ export const useBranchesStore = defineStore('branches', () => {
     },
     {
       id: 'branch-3',
-      name: "Judy's Cafe Mall",
+      name: "Judy's Express Bayfront",
       address: '789 Shopping Center, Mall District, MD 54321',
       phone: '(555) 456-7890',
-      email: 'mall@judyscafe.com',
+      email: 'bayfront@judyscafe.com',
       manager: 'Emma Rodriguez',
       status: 'maintenance',
       openingHours: '10:00 AM - 10:00 PM',
@@ -60,9 +61,31 @@ export const useBranchesStore = defineStore('branches', () => {
       employees: 5,
       lastUpdated: new Date(),
     },
-  ])
+  ]
+
+  const loadBranches = (): Branch[] => {
+    const saved = localStorage.getItem('judys_branches')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        return parsed.map((b: any) => ({
+          ...b,
+          lastUpdated: new Date(b.lastUpdated)
+        }))
+      } catch (e) {
+        console.error('Failed to parse saved branches', e)
+      }
+    }
+    return getDefaultBranches()
+  }
+
+  const branches = ref<Branch[]>(loadBranches())
 
   const selectedBranchId = ref<string | null>(null)
+
+  function saveBranches() {
+    localStorage.setItem('judys_branches', JSON.stringify(branches.value))
+  }
 
   // Computed properties
   const selectedBranch = computed(() => {
@@ -108,6 +131,24 @@ export const useBranchesStore = defineStore('branches', () => {
       lastUpdated: new Date(),
     }
     branches.value.push(newBranch)
+    saveBranches()
+
+    // Sync with Supabase
+    const syncStore = useSyncStore()
+    syncStore.queueAction('branches', 'insert', {
+      id: newBranch.id,
+      name: newBranch.name,
+      address: newBranch.address,
+      phone: newBranch.phone,
+      email: newBranch.email,
+      manager: newBranch.manager,
+      status: newBranch.status,
+      opening_hours: newBranch.openingHours,
+      total_sales: newBranch.totalSales,
+      daily_sales: newBranch.dailySales,
+      employees: newBranch.employees
+    })
+
     return newBranch
   }
 
@@ -119,6 +160,25 @@ export const useBranchesStore = defineStore('branches', () => {
         ...updates,
         lastUpdated: new Date(),
       }
+      saveBranches()
+
+      // Sync with Supabase
+      const syncStore = useSyncStore()
+      const updated = branches.value[index]
+      syncStore.queueAction('branches', 'update', {
+        id: updated.id,
+        name: updated.name,
+        address: updated.address,
+        phone: updated.phone,
+        email: updated.email,
+        manager: updated.manager,
+        status: updated.status,
+        opening_hours: updated.openingHours,
+        total_sales: updated.totalSales,
+        daily_sales: updated.dailySales,
+        employees: updated.employees
+      })
+
       return branches.value[index]
     }
     return null
@@ -132,6 +192,7 @@ export const useBranchesStore = defineStore('branches', () => {
         clearBranchSelection()
       }
       branches.value.splice(index, 1)
+      saveBranches()
       return true
     }
     return false

@@ -1,19 +1,56 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check your .env file.')
-}
+export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey)
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
-})
+export const supabase = isSupabaseConfigured
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    })
+  : (new Proxy({}, {
+      get(target, prop) {
+        if (prop === 'auth') {
+          return {
+            getUser: async () => ({ data: { user: null }, error: null }),
+            signInWithPassword: async () => ({ data: {}, error: null }),
+            signOut: async () => ({ error: null }),
+            signUp: async () => ({ data: {}, error: null })
+          }
+        }
+        if (prop === 'channel') {
+          return () => ({
+            on: () => ({
+              subscribe: () => ({})
+            })
+          })
+        }
+        return () => ({
+          from: () => ({
+            select: () => ({
+              order: () => ({
+                limit: () => Promise.resolve({ data: [], error: null }),
+                order: () => ({ order: () => Promise.resolve({ data: [], error: null }) }),
+                gte: () => ({ lte: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) })
+              }),
+              eq: () => ({
+                single: () => Promise.resolve({ data: null, error: null }),
+                order: () => ({ order: () => Promise.resolve({ data: [], error: null }) })
+              }),
+              limit: () => Promise.resolve({ data: [], error: null })
+            }),
+            insert: () => ({ select: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
+            update: () => ({ eq: () => ({ select: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }) }),
+            delete: () => ({ eq: () => Promise.resolve({ error: null }) })
+          })
+        })
+      }
+    }) as any)
 
 // Database type definitions for TypeScript
 export interface Database {

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useBranchesStore } from './branches'
 
 export interface Employee {
@@ -137,8 +137,53 @@ export interface ShiftRequest {
   relatedEmployeeId?: string // For shift swaps
 }
 
+import { useSyncStore } from './sync'
+
 export const useEmployeeStore = defineStore('employees', () => {
   const branchesStore = useBranchesStore()
+
+  const loadBranchData = () => {
+    const saved = localStorage.getItem('judys_employees_branch_data')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        // Convert date fields back to Date objects
+        for (const branchId in parsed) {
+          if (parsed[branchId].employees) {
+            parsed[branchId].employees = parsed[branchId].employees.map((emp: any) => ({
+              ...emp,
+              hireDate: new Date(emp.hireDate)
+            }))
+          }
+          if (parsed[branchId].schedules) {
+            parsed[branchId].schedules = parsed[branchId].schedules.map((sch: any) => ({
+              ...sch,
+              date: new Date(sch.date)
+            }))
+          }
+          if (parsed[branchId].timeEntries) {
+            parsed[branchId].timeEntries = parsed[branchId].timeEntries.map((te: any) => ({
+              ...te,
+              clockIn: new Date(te.clockIn),
+              clockOut: te.clockOut ? new Date(te.clockOut) : undefined
+            }))
+          }
+          if (parsed[branchId].shiftRequests) {
+            parsed[branchId].shiftRequests = parsed[branchId].shiftRequests.map((req: any) => ({
+              ...req,
+              requestDate: new Date(req.requestDate),
+              affectedDates: req.affectedDates.map((d: any) => new Date(d)),
+              reviewedAt: req.reviewedAt ? new Date(req.reviewedAt) : undefined
+            }))
+          }
+        }
+        return parsed
+      } catch (e) {
+        console.error('Failed to parse employees branch data', e)
+      }
+    }
+    return {}
+  }
 
   // Branch-specific data
   const branchData = ref<
@@ -153,7 +198,11 @@ export const useEmployeeStore = defineStore('employees', () => {
         shiftRequests: ShiftRequest[]
       }
     >
-  >({})
+  >(loadBranchData())
+
+  function saveToStorage() {
+    localStorage.setItem('judys_employees_branch_data', JSON.stringify(branchData.value))
+  }
 
   // Helper functions
   function getCurrentBranchData() {
@@ -163,7 +212,14 @@ export const useEmployeeStore = defineStore('employees', () => {
     }
 
     if (!branchData.value[branchId]) {
-      initializeBranchData(branchId)
+      return {
+        employees: [],
+        schedules: [],
+        timeEntries: [],
+        payrollPeriods: [],
+        performanceMetrics: [],
+        shiftRequests: [],
+      }
     }
 
     return branchData.value[branchId]
@@ -185,6 +241,17 @@ export const useEmployeeStore = defineStore('employees', () => {
     generateSamplePerformanceMetrics(branchId)
   }
 
+  // Watch for branch selection changes to proactively initialize branch data
+  watch(
+    () => branchesStore.selectedBranchId,
+    (newBranchId) => {
+      if (newBranchId && !branchData.value[newBranchId]) {
+        initializeBranchData(newBranchId)
+      }
+    },
+    { immediate: true }
+  )
+
   function getDefaultEmployees(branchId: string): Employee[] {
     return [
       {
@@ -192,7 +259,7 @@ export const useEmployeeStore = defineStore('employees', () => {
         employeeId: 'JC001',
         firstName: 'Sarah',
         lastName: 'Johnson',
-        email: 'sarah.johnson@judyscafe.com',
+        email: 'sarah.johnson@rockproxy.com',
         phone: '+1-555-0201',
         address: '123 Main St, Coffee City',
         position: 'manager',
@@ -223,7 +290,7 @@ export const useEmployeeStore = defineStore('employees', () => {
         employeeId: 'JC002',
         firstName: 'Alex',
         lastName: 'Rodriguez',
-        email: 'alex.rodriguez@judyscafe.com',
+        email: 'alex.rodriguez@rockproxy.com',
         phone: '+1-555-0203',
         address: '456 Coffee Ave, Bean Town',
         position: 'barista',
@@ -254,7 +321,7 @@ export const useEmployeeStore = defineStore('employees', () => {
         employeeId: 'JC003',
         firstName: 'Emma',
         lastName: 'Chen',
-        email: 'emma.chen@judyscafe.com',
+        email: 'emma.chen@rockproxy.com',
         phone: '+1-555-0205',
         address: '789 Brew St, Espresso Heights',
         position: 'cashier',
@@ -497,6 +564,22 @@ export const useEmployeeStore = defineStore('employees', () => {
       id: `emp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     }
     data.employees.push(newEmployee)
+    saveToStorage()
+
+    // Sync with Supabase
+    const syncStore = useSyncStore()
+    syncStore.queueAction('employees', 'insert', {
+      id: newEmployee.id,
+      first_name: newEmployee.firstName,
+      last_name: newEmployee.lastName,
+      email: newEmployee.email,
+      phone: newEmployee.phone,
+      position: newEmployee.position,
+      department: newEmployee.department,
+      hourly_rate: newEmployee.hourlyRate,
+      status: newEmployee.status,
+      branch_id: branchesStore.selectedBranchId!
+    })
   }
 
   function updateEmployee(employeeId: string, updates: Partial<Employee>) {
@@ -504,6 +587,23 @@ export const useEmployeeStore = defineStore('employees', () => {
     const employeeIndex = data.employees.findIndex((emp) => emp.id === employeeId)
     if (employeeIndex !== -1) {
       data.employees[employeeIndex] = { ...data.employees[employeeIndex], ...updates }
+      saveToStorage()
+
+      // Sync with Supabase
+      const syncStore = useSyncStore()
+      const updated = data.employees[employeeIndex]
+      syncStore.queueAction('employees', 'update', {
+        id: updated.id,
+        first_name: updated.firstName,
+        last_name: updated.lastName,
+        email: updated.email,
+        phone: updated.phone,
+        position: updated.position,
+        department: updated.department,
+        hourly_rate: updated.hourlyRate,
+        status: updated.status,
+        branch_id: branchesStore.selectedBranchId!
+      })
     }
   }
 
@@ -525,6 +625,7 @@ export const useEmployeeStore = defineStore('employees', () => {
     }
 
     data.timeEntries.push(timeEntry)
+    saveToStorage()
   }
 
   function clockOut(employeeId: string) {
@@ -547,6 +648,7 @@ export const useEmployeeStore = defineStore('employees', () => {
       timeEntry.totalHours = totalHours
       timeEntry.regularHours = Math.min(totalHours, 8)
       timeEntry.overtimeHours = Math.max(totalHours - 8, 0)
+      saveToStorage()
     }
   }
 
@@ -558,6 +660,7 @@ export const useEmployeeStore = defineStore('employees', () => {
       createdAt: new Date(),
     }
     data.schedules.push(newSchedule)
+    saveToStorage()
   }
 
   function submitShiftRequest(request: Omit<ShiftRequest, 'id' | 'requestDate' | 'status'>) {
@@ -569,6 +672,7 @@ export const useEmployeeStore = defineStore('employees', () => {
       status: 'pending',
     }
     data.shiftRequests.push(newRequest)
+    saveToStorage()
   }
 
   function approveShiftRequest(requestId: string, reviewNotes?: string) {
@@ -578,6 +682,7 @@ export const useEmployeeStore = defineStore('employees', () => {
       request.status = 'approved'
       request.reviewedAt = new Date()
       request.reviewNotes = reviewNotes
+      saveToStorage()
     }
   }
 
@@ -588,6 +693,7 @@ export const useEmployeeStore = defineStore('employees', () => {
       request.status = 'denied'
       request.reviewedAt = new Date()
       request.reviewNotes = reviewNotes
+      saveToStorage()
     }
   }
 
@@ -642,6 +748,7 @@ export const useEmployeeStore = defineStore('employees', () => {
     }
 
     data.payrollPeriods.push(payrollPeriod)
+    saveToStorage()
     return payrollPeriod
   }
 

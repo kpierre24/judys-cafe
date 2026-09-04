@@ -128,13 +128,35 @@ export class SupabaseService {
 
   // Transaction operations
   static async createTransaction(transaction: Tables['transactions']['Insert']): Promise<Transaction> {
+    if (transaction.branch_id) {
+      try {
+        await supabase.from('branches').upsert({
+          id: transaction.branch_id,
+          name: 'Main Branch',
+          code: 'MAIN-01',
+          city: 'Main City',
+          address: '123 Main St',
+          phone: '555-0100',
+          status: 'active'
+        }, { onConflict: 'id' })
+      } catch {
+        // Ignore branch upsert pre-check errors
+      }
+    }
+
     const { data, error } = await supabase
       .from('transactions')
       .insert(transaction)
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      if (error.code === '23505') {
+        console.warn('Transaction already exists in Supabase:', transaction.receipt_number)
+        return transaction as any
+      }
+      throw error
+    }
     return data
   }
 

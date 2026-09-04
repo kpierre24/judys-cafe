@@ -27,7 +27,7 @@ const authStore = useAuthStore()
 const branches = ref<Branch[]>([
   {
     id: 'branch-1',
-    name: "Judy's Cafe Downtown",
+    name: "Judy's Cafe Downtown (Flagship)",
     address: '123 Main Street, Downtown City, DC 12345',
     phone: '(555) 123-4567',
     email: 'downtown@judyscafe.com',
@@ -41,7 +41,7 @@ const branches = ref<Branch[]>([
   },
   {
     id: 'branch-2',
-    name: "Judy's Cafe Uptown",
+    name: "Judy's Cafe Uptown Roastery",
     address: '456 Oak Avenue, Uptown City, UC 67890',
     phone: '(555) 987-6543',
     email: 'uptown@judyscafe.com',
@@ -55,10 +55,10 @@ const branches = ref<Branch[]>([
   },
   {
     id: 'branch-3',
-    name: "Judy's Cafe Mall",
+    name: "Judy's Express Bayfront",
     address: '789 Shopping Center, Mall District, MD 54321',
     phone: '(555) 456-7890',
-    email: 'mall@judyscafe.com',
+    email: 'bayfront@judyscafe.com',
     manager: 'Emma Rodriguez',
     status: 'maintenance',
     openingHours: '10:00 AM - 10:00 PM',
@@ -359,7 +359,7 @@ function viewDetails(branch: Branch) {
               v-model="newBranch.email"
               type="email"
               required
-              placeholder="branch@judyscafe.com"
+              placeholder="branch@rockproxy.com"
             />
           </div>
         </div>

@@ -1,0 +1,6 @@
+{
+  "name": "Judy's Cafe POS & Operations Suite",
+  "description": "Enterprise-grade point-of-sale, live kitchen display system, multi-branch control, employee scheduling, intelligent inventory replenishment, and analytics for artisanal cafes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

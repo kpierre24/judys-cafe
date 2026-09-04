@@ -27,7 +27,7 @@ export class DataMigration {
         employees: 12
       },
       {
-        name: "Judy's Cafe Westside",
+        name: "Judy's Cafe Westside Roastery",
         address: "456 Oak Ave, Westside",
         phone: "+1-555-0102",
         email: "westside@judyscafe.com",
@@ -39,7 +39,7 @@ export class DataMigration {
         employees: 8
       },
       {
-        name: "Judy's Cafe Airport",
+        name: "Judy's Express Airport",
         address: "789 Airport Blvd, Terminal 1",
         phone: "+1-555-0103",
         email: "airport@judyscafe.com",

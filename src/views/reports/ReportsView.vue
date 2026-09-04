@@ -3,6 +3,9 @@ import { ref, computed } from 'vue'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
+import { useEndOfDayStore } from '@/stores/endOfDay'
+
+const endOfDayStore = useEndOfDayStore()
 
 // Mock data for reports
 const selectedPeriod = ref('today')
@@ -95,7 +98,14 @@ const reportOptions = [
   { value: 'sales', label: 'Sales Report' },
   { value: 'inventory', label: 'Inventory Report' },
   { value: 'financial', label: 'Financial Report' },
+  { value: 'daily_summary', label: 'Daily Shift & EOD Reports' },
 ]
+
+const activeReportDetail = ref<any | null>(null)
+
+function closeReportDetail() {
+  activeReportDetail.value = null
+}
 
 const currentSalesData = computed(() => {
   return salesData[selectedPeriod.value as keyof typeof salesData] || salesData.today
@@ -461,6 +471,448 @@ function printReport() {
           </div>
         </CardContent>
       </Card>
+    </div>
+
+    <!-- Daily Summary Report (EOD & Shift Reconciliation) -->
+    <div v-if="selectedReport === 'daily_summary'" class="space-y-6">
+      <!-- Real-time Hourly Sales Chart and Top Products sold -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Sales Performance Chart -->
+        <Card>
+          <CardHeader>
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-base font-bold text-gray-900">Today's Peak Sales Performance</h3>
+                <p class="text-xs text-gray-500">Hourly revenue and transaction volume peaks</p>
+              </div>
+              <span class="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full">
+                Active Shift
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent class="p-6">
+            <div class="space-y-6">
+              <!-- Visual Bar Chart representation of Hourly sales -->
+              <div class="h-44 flex items-end justify-between gap-2 pt-4 border-b border-gray-100">
+                <div 
+                  v-for="item in salesData.today.hourlyBreakdown" 
+                  :key="item.hour" 
+                  class="flex-1 flex flex-col items-center group relative cursor-pointer"
+                >
+                  <!-- Tooltip -->
+                  <div class="absolute bottom-full mb-1 bg-slate-900 text-white text-[10px] font-semibold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none shadow-md">
+                    ${{ item.sales.toFixed(2) }} ({{ item.orders }} orders)
+                  </div>
+                  <!-- Bar -->
+                  <div 
+                    class="w-full bg-indigo-500 hover:bg-indigo-600 rounded-t transition-all duration-300"
+                    :style="{ height: `${Math.max(10, (item.sales / 250) * 100)}%` }"
+                  ></div>
+                  <!-- Label -->
+                  <span class="text-[10px] text-gray-400 font-bold mt-2 font-mono">{{ item.hour }}</span>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-3 gap-4 text-center">
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100/60">
+                  <p class="text-[10px] text-gray-500 font-bold uppercase">Peak Hour</p>
+                  <p class="text-sm font-extrabold text-slate-900 mt-0.5">11:00 AM</p>
+                  <p class="text-[9px] text-slate-400">($234.50)</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100/60">
+                  <p class="text-[10px] text-gray-500 font-bold uppercase">Avg Orders/Hr</p>
+                  <p class="text-sm font-extrabold text-slate-900 mt-0.5">11.8</p>
+                  <p class="text-[9px] text-slate-400">Transactions/hr</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-100/60">
+                  <p class="text-[10px] text-gray-500 font-bold uppercase">Target Pace</p>
+                  <p class="text-sm font-extrabold text-emerald-600 mt-0.5">+12.5%</p>
+                  <p class="text-[9px] text-slate-400">Above baseline</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Product Popularity and Share of Day -->
+        <Card>
+          <CardHeader>
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="text-base font-bold text-gray-900">Today's Best Sellers</h3>
+                <p class="text-xs text-gray-500">Top contributors to today's menu revenue</p>
+              </div>
+              <span class="text-xs text-slate-400 font-mono">Synced</span>
+            </div>
+          </CardHeader>
+          <CardContent class="p-6">
+            <div class="space-y-4">
+              <div 
+                v-for="product in salesData.today.topProducts" 
+                :key="product.name"
+                class="space-y-1.5"
+              >
+                <div class="flex justify-between text-xs font-semibold">
+                  <span class="text-gray-800">{{ product.name }}</span>
+                  <div class="space-x-2 text-right">
+                    <span class="text-gray-500">x{{ product.quantity }} sold</span>
+                    <span class="text-gray-900 font-bold font-mono">${{ product.revenue.toFixed(2) }}</span>
+                  </div>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div 
+                    class="bg-amber-500 h-2 rounded-full transition-all duration-500" 
+                    :style="{ width: `${(product.revenue / 202.5) * 100}%` }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <!-- KPI Row -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">Today's POS Sales</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">
+                  ${{ endOfDayStore.todaysSalesSummary.totalRevenue.toFixed(2) }}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                  {{ endOfDayStore.todaysSalesSummary.totalTransactions }} orders processed
+                </p>
+              </div>
+              <div class="text-3xl bg-green-50 p-2.5 rounded-xl">💰</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">Petty Cash Net</p>
+                <p :class="['text-2xl font-bold mt-1', endOfDayStore.pettyCashSummary.netChange >= 0 ? 'text-blue-600' : 'text-amber-600']">
+                  ${{ endOfDayStore.pettyCashSummary.netChange.toFixed(2) }}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                  +${{ endOfDayStore.pettyCashSummary.totalIn.toFixed(2) }} / -${{ endOfDayStore.pettyCashSummary.totalOut.toFixed(2) }}
+                </p>
+              </div>
+              <div class="text-3xl bg-blue-50 p-2.5 rounded-xl">🪙</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">Active Stock Audits</p>
+                <p class="text-2xl font-bold text-indigo-600 mt-1">
+                  {{ endOfDayStore.currentStockCheck.length || endOfDayStore.stockChecks.length }}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                  Monitored products
+                </p>
+              </div>
+              <div class="text-3xl bg-indigo-50 p-2.5 rounded-xl">📦</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">EOD Reports Filed</p>
+                <p class="text-2xl font-bold text-purple-600 mt-1">
+                  {{ endOfDayStore.endOfDayReports.length }}
+                </p>
+                <p class="text-xs text-gray-400 mt-1">
+                  Audit logs completed
+                </p>
+              </div>
+              <div class="text-3xl bg-purple-50 p-2.5 rounded-xl">📋</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Shift Checkpoints List -->
+        <Card class="lg:col-span-1">
+          <CardHeader class="pb-3">
+            <h3 class="text-base font-bold text-gray-900">Today's Shift Progress</h3>
+            <p class="text-xs text-gray-500">Active verification checklist</p>
+          </CardHeader>
+          <CardContent class="p-6 space-y-4">
+            <!-- Stock Audit -->
+            <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+              <span class="text-base">
+                {{ endOfDayStore.stockChecks.length > 0 ? '✅' : '⏳' }}
+              </span>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900">Stock Take Checkpoint</p>
+                <p class="text-xs text-gray-500">
+                  {{ endOfDayStore.stockChecks.length > 0 ? 'Stock counts audit lock completed' : 'Pending shift stocktake count' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Petty Cash -->
+            <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+              <span class="text-base">
+                {{ endOfDayStore.pettyCashSummary.entries.length > 0 ? '✅' : '⏳' }}
+              </span>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900">Petty Cash Logs</p>
+                <p class="text-xs text-gray-500">
+                  {{ endOfDayStore.pettyCashSummary.entries.length }} active transaction entries
+                </p>
+              </div>
+            </div>
+
+            <!-- Drawer Reconciliation -->
+            <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+              <span class="text-base">
+                {{ endOfDayStore.cashReconciliations.length > 0 ? '✅' : '⏳' }}
+              </span>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900">Cash Drawer Reconciliation</p>
+                <p class="text-xs text-gray-500">
+                  {{ endOfDayStore.cashReconciliations.length > 0 ? 'Cash drawer counted & locked' : 'Awaiting physical count' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- EOD File -->
+            <div class="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+              <span class="text-base">
+                {{ endOfDayStore.getTodaysEndOfDayReport() ? '✅' : '⏳' }}
+              </span>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900">Final Shift Signoff</p>
+                <p class="text-xs text-gray-500">
+                  {{ endOfDayStore.getTodaysEndOfDayReport() ? 'EOD report filed & exported' : 'Waiting for shift tasks to close' }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Historical EOD Reports Log -->
+        <Card class="lg:col-span-2">
+          <CardHeader class="pb-3 flex flex-row items-center justify-between space-y-0">
+            <div>
+              <h3 class="text-base font-bold text-gray-900">Historical Reconciliation Audits</h3>
+              <p class="text-xs text-gray-500">Audited cash registers, discrepancies, and stock variances</p>
+            </div>
+            <span class="text-xs text-gray-400">Archived shift closures</span>
+          </CardHeader>
+          <CardContent class="p-6">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm text-left text-gray-500">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-4 py-3">Date</th>
+                    <th scope="col" class="px-4 py-3">Completed By</th>
+                    <th scope="col" class="px-4 py-3">Sales</th>
+                    <th scope="col" class="px-4 py-3">Variance</th>
+                    <th scope="col" class="px-4 py-3">Status</th>
+                    <th scope="col" class="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="report in endOfDayStore.endOfDayReports" :key="report.id" class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-4 py-3.5 font-medium text-gray-900 whitespace-nowrap">
+                      {{ new Date(report.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) }}
+                    </td>
+                    <td class="px-4 py-3.5 text-gray-700">
+                      {{ report.completedBy }}
+                    </td>
+                    <td class="px-4 py-3.5 font-semibold text-gray-900">
+                      ${{ report.salesSummary.totalRevenue.toFixed(2) }}
+                    </td>
+                    <td class="px-4 py-3.5">
+                      <span :class="[
+                        'font-mono font-bold',
+                        report.cashReconciliation.cashVariance === 0 ? 'text-green-600' :
+                        Math.abs(report.cashReconciliation.cashVariance) <= 0.5 ? 'text-amber-500' : 'text-red-600'
+                      ]">
+                        {{ report.cashReconciliation.cashVariance > 0 ? '+' : '' }}{{ report.cashReconciliation.cashVariance.toFixed(2) }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3.5">
+                      <span :class="[
+                        'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider',
+                        report.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      ]">
+                        {{ report.status === 'completed' ? 'Balanced' : 'Flagged' }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3.5 text-right">
+                      <Button size="sm" variant="outline" @click="activeReportDetail = report" class="text-xs h-7 px-3">
+                        🔎 View Audit
+                      </Button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Detail Overlay Modal -->
+      <div v-if="activeReportDetail" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-end">
+        <div class="bg-white w-full max-w-xl h-full shadow-2xl p-6 overflow-y-auto flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between border-b pb-4 mb-6">
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">EOD Shift Reconciliation Audit</h3>
+                <p class="text-xs text-gray-500">
+                  Filed on {{ new Date(activeReportDetail.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) }}
+                </p>
+              </div>
+              <button @click="closeReportDetail" class="text-gray-400 hover:text-gray-600 text-xl border-none bg-transparent cursor-pointer">
+                ✕
+              </button>
+            </div>
+
+            <div class="space-y-6">
+              <!-- Summary Grid -->
+              <div class="grid grid-cols-3 gap-3">
+                <div class="bg-gray-50 p-3 rounded-lg text-center border border-gray-100">
+                  <span class="text-[10px] text-gray-500 font-bold uppercase block mb-1">Total Sales</span>
+                  <span class="text-base font-bold text-gray-900">${{ activeReportDetail.salesSummary.totalRevenue.toFixed(2) }}</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg text-center border border-gray-100">
+                  <span class="text-[10px] text-gray-500 font-bold uppercase block mb-1">Cash Counted</span>
+                  <span class="text-base font-bold text-gray-900">${{ activeReportDetail.cashReconciliation.actualCashCount.toFixed(2) }}</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg text-center border border-gray-100">
+                  <span class="text-[10px] text-gray-500 font-bold uppercase block mb-1">Discrepancy</span>
+                  <span :class="['text-base font-bold block', activeReportDetail.cashReconciliation.cashVariance === 0 ? 'text-green-600' : 'text-red-600']">
+                    ${{ activeReportDetail.cashReconciliation.cashVariance.toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- General Shift Info -->
+              <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 text-sm text-blue-900 space-y-2">
+                <p><strong>Shift Supervisor:</strong> {{ activeReportDetail.completedBy }}</p>
+                <p><strong>Opening Drawer:</strong> ${{ activeReportDetail.cashReconciliation.openingCash.toFixed(2) }}</p>
+                <p><strong>Expected Drawer Cash:</strong> ${{ activeReportDetail.cashReconciliation.expectedCash.toFixed(2) }}</p>
+                <p v-if="activeReportDetail.cashReconciliation.notes">
+                  <strong>Notes:</strong> "{{ activeReportDetail.cashReconciliation.notes }}"
+                </p>
+              </div>
+
+              <!-- Cash Breakdown Grid -->
+              <div>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Physical Cash Counts</h4>
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 grid grid-cols-2 gap-4">
+                  <div>
+                    <h5 class="text-xs font-bold text-gray-500 uppercase mb-2 border-b pb-1">Bills</h5>
+                    <div class="space-y-1.5 text-xs font-mono">
+                      <div class="flex justify-between">
+                        <span>$100 Bills:</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.bills.hundred }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>$50 Bills:</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.bills.fifty }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>$20 Bills:</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.bills.twenty }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>$10 Bills:</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.bills.ten }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>$5 Bills:</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.bills.five }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>$1 Bills:</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.bills.one }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h5 class="text-xs font-bold text-gray-500 uppercase mb-2 border-b pb-1">Coins</h5>
+                    <div class="space-y-1.5 text-xs font-mono">
+                      <div class="flex justify-between">
+                        <span>Quarters (25¢):</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.coins.quarter }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>Dimes (10¢):</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.coins.dime }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>Nickels (5¢):</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.coins.nickel }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span>Pennies (1¢):</span>
+                        <span class="font-bold text-gray-900">x{{ activeReportDetail.cashReconciliation.cashBreakdown.coins.penny }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Other Revenue Types -->
+              <div>
+                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Non-Cash Card & Mobile Channels</h4>
+                <div class="grid grid-cols-2 gap-4 text-xs font-mono bg-gray-50 p-4 rounded-lg border border-gray-100">
+                  <div class="flex justify-between">
+                    <span class="text-gray-500">Terminal Card Sales:</span>
+                    <span class="font-bold text-gray-900">${{ activeReportDetail.cashReconciliation.cardSales.toFixed(2) }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-gray-500">Mobile Wallet Sales:</span>
+                    <span class="font-bold text-gray-900">${{ activeReportDetail.cashReconciliation.mobileSales.toFixed(2) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Petty Cash & Stock Variance Summary -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Petty Cash Netting</h4>
+                  <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs space-y-1">
+                    <p class="flex justify-between"><span>Petty Cash In:</span> <span class="font-bold text-green-600">+${{ activeReportDetail.pettyCashSummary.totalIn.toFixed(2) }}</span></p>
+                    <p class="flex justify-between"><span>Petty Cash Out:</span> <span class="font-bold text-red-600">-${{ activeReportDetail.pettyCashSummary.totalOut.toFixed(2) }}</span></p>
+                    <p class="flex justify-between border-t pt-1 font-semibold"><span>Net Shift Cash:</span> <span class="text-gray-900 font-bold">${{ activeReportDetail.pettyCashSummary.netChange.toFixed(2) }}</span></p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Inventory Variances</h4>
+                  <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs space-y-1">
+                    <p class="flex justify-between"><span>Audited Items:</span> <span class="font-bold text-gray-900">{{ activeReportDetail.stockCheck.totalItems }}</span></p>
+                    <p class="flex justify-between"><span>Variance Items:</span> <span :class="['font-bold', activeReportDetail.stockCheck.itemsWithVariance > 0 ? 'text-red-600' : 'text-green-600']">{{ activeReportDetail.stockCheck.itemsWithVariance }} products</span></p>
+                    <p class="flex justify-between border-t pt-1 font-semibold"><span>Variance Cost:</span> <span class="text-red-600 font-bold">-${{ Math.abs(activeReportDetail.stockCheck.totalStockVariance).toFixed(2) }}</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t mt-6 flex gap-3">
+            <Button class="w-full h-10 text-xs" variant="outline" @click="closeReportDetail"> Close Audit </Button>
+            <Button class="w-full h-10 text-xs bg-blue-600 hover:bg-blue-700 text-white" @click="printReport"> 🖨️ Print Receipt Copy </Button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>

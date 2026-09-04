@@ -28,7 +28,7 @@ const branchesStore = useBranchesStore()
 const activeTab = ref('overview')
 const selectedDevice = ref<IoTDevice | null>(null)
 const autoRefresh = ref(true)
-const refreshInterval = ref<NodeJS.Timeout | null>(null)
+const refreshInterval = ref<any>(null)
 
 // Computed
 const systemStats = computed(() => {

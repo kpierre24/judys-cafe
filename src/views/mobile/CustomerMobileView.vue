@@ -232,7 +232,7 @@ function changeTab(tab: string) {
     <div class="bg-white shadow-sm p-4 sticky top-0 z-10">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-xl font-bold text-gray-900">Judy's Cafe</h1>
+          <h1 class="text-xl font-bold text-gray-900 font-serif">Judy's Cafe</h1>
           <div class="flex items-center space-x-1 text-sm text-gray-600">
             <MapPinIcon class="h-4 w-4" />
             <span>{{ branchesStore.selectedBranch?.name }}</span>

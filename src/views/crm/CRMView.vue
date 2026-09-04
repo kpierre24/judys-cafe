@@ -64,7 +64,7 @@ const newCampaign = ref<Partial<PromotionalCampaign>>({
 
 // Computed
 const recentCustomers = computed(() => {
-  return crmStore.customers
+  return [...crmStore.customers]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
 })

@@ -429,39 +429,41 @@ export const useAnalyticsStore = defineStore('analytics', () => {
       branchId: branch.id,
       branchName: branch.name,
       metrics: {
-        sales: 800 + Math.random() * 600,
-        profit: 200 + Math.random() * 300,
-        customers: 45 + Math.random() * 35,
-        orders: 60 + Math.random() * 40,
-        averageOrderValue: 12 + Math.random() * 8,
-        employeeProductivity: 85 + Math.random() * 15,
-        customerSatisfaction: 4.2 + Math.random() * 0.6,
+        sales: 800 + ((index + 1) * 150),
+        profit: 250 + ((index + 1) * 60),
+        customers: 50 + ((index + 1) * 12),
+        orders: 65 + ((index + 1) * 15),
+        averageOrderValue: 14.5,
+        employeeProductivity: 88 + index * 3,
+        customerSatisfaction: 4.5 + index * 0.1,
       },
       rankings: {
         sales: index + 1,
-        profit: ((index + 2) % branchesStore.branches.length) + 1,
-        efficiency: ((index + 1) % branchesStore.branches.length) + 1,
+        profit: ((index + 2) % Math.max(branchesStore.branches.length, 1)) + 1,
+        efficiency: ((index + 1) % Math.max(branchesStore.branches.length, 1)) + 1,
         satisfaction: index + 1,
       },
     }))
   })
 
+  const currentTime = ref(new Date())
+  const staticHourlyTrends = Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    sales: Math.round(((hour >= 7 && hour <= 14 ? 85 : 35) + (hour * 4) % 30) * 10) / 10,
+    orders: Math.floor((hour >= 7 && hour <= 14 ? 14 : 5) + (hour * 2) % 6),
+  }))
+
   const realtimeDashboard = computed(() => {
-    const now = new Date()
     return {
-      currentTime: now,
+      currentTime: currentTime.value,
       liveMetrics: {
-        currentOrders: Math.floor(Math.random() * 12 + 3),
-        ordersInQueue: Math.floor(Math.random() * 8 + 1),
-        averageWaitTime: Math.floor(Math.random() * 8 + 5), // minutes
+        currentOrders: 8,
+        ordersInQueue: 3,
+        averageWaitTime: 6, // minutes
         staffOnDuty: employeeStore.currentlyWorking.length,
         lowStockAlerts: inventoryStore.criticalAlerts.length,
       },
-      hourlyTrends: Array.from({ length: 24 }, (_, hour) => ({
-        hour,
-        sales: Math.random() * 100 + 20,
-        orders: Math.floor(Math.random() * 15 + 2),
-      })),
+      hourlyTrends: staticHourlyTrends,
     }
   })
 

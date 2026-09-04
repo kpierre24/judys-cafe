@@ -123,6 +123,204 @@ export const useEndOfDayStore = defineStore('endOfDay', () => {
   const isStockCheckInProgress = ref(false)
   const currentCashReconciliation = ref<Partial<CashReconciliation>>({})
 
+  // Load from Storage helper
+  function loadFromStorage() {
+    const savedChecks = localStorage.getItem('judys_eod_stock_checks')
+    if (savedChecks) stockChecks.value = JSON.parse(savedChecks)
+
+    const savedPetty = localStorage.getItem('judys_eod_petty_cash')
+    if (savedPetty) {
+      try {
+        pettyCashEntries.value = JSON.parse(savedPetty).map((entry: any) => ({
+          ...entry,
+          date: new Date(entry.date)
+        }))
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    const savedReconciliations = localStorage.getItem('judys_eod_reconciliations')
+    if (savedReconciliations) {
+      try {
+        cashReconciliations.value = JSON.parse(savedReconciliations).map((rec: any) => ({
+          ...rec,
+          date: new Date(rec.date)
+        }))
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    const savedReports = localStorage.getItem('judys_eod_reports')
+    if (savedReports) {
+      try {
+        endOfDayReports.value = JSON.parse(savedReports).map((rep: any) => ({
+          ...rep,
+          date: new Date(rep.date),
+          completedAt: rep.completedAt ? new Date(rep.completedAt) : undefined,
+          cashReconciliation: {
+            ...rep.cashReconciliation,
+            date: new Date(rep.cashReconciliation.date)
+          }
+        }))
+      } catch (e) {
+        console.error(e)
+      }
+    }
+  }
+
+  loadFromStorage()
+
+  // Seed historical EOD data for a beautiful initial experience if empty
+  if (endOfDayReports.value.length === 0) {
+    const date1 = new Date()
+    date1.setDate(date1.getDate() - 1)
+    const date2 = new Date()
+    date2.setDate(date2.getDate() - 2)
+    const date3 = new Date()
+    date3.setDate(date3.getDate() - 3)
+
+    const seedReports: EndOfDayReport[] = [
+      {
+        id: 'rep-yesterday',
+        date: date1,
+        completedAt: date1,
+        completedBy: 'Alice Manager',
+        status: 'completed',
+        salesSummary: {
+          totalTransactions: 112,
+          totalRevenue: 1540.50,
+          averageTransaction: 13.75
+        },
+        pettyCashSummary: {
+          totalIn: 0,
+          totalOut: 12.50,
+          netChange: -12.50
+        },
+        stockCheck: {
+          totalItems: 8,
+          itemsWithVariance: 0,
+          totalStockVariance: 0
+        },
+        cashReconciliation: {
+          id: 'rec-yesterday',
+          date: date1,
+          openingCash: 200,
+          totalSales: 850.50,
+          pettyCashIn: 0,
+          pettyCashOut: 12.50,
+          expectedCash: 1038.00,
+          actualCashCount: 1038.00,
+          cashVariance: 0,
+          cardSales: 540.00,
+          mobileSales: 150.00,
+          performedBy: 'Alice Manager',
+          status: 'verified',
+          cashBreakdown: {
+            bills: { hundred: 5, fifty: 6, twenty: 10, ten: 3, five: 1, one: 3 },
+            coins: { quarter: 0, dime: 0, nickel: 0, penny: 0 }
+          }
+        }
+      },
+      {
+        id: 'rep-2-days-ago',
+        date: date2,
+        completedAt: date2,
+        completedBy: 'Bob Shift Lead',
+        status: 'requires-attention',
+        salesSummary: {
+          totalTransactions: 98,
+          totalRevenue: 1320.00,
+          averageTransaction: 13.47
+        },
+        pettyCashSummary: {
+          totalIn: 15.00,
+          totalOut: 35.00,
+          netChange: -20.00
+        },
+        stockCheck: {
+          totalItems: 8,
+          itemsWithVariance: 2,
+          totalStockVariance: -14.20
+        },
+        cashReconciliation: {
+          id: 'rec-2-days-ago',
+          date: date2,
+          openingCash: 200,
+          totalSales: 720.00,
+          pettyCashIn: 15.00,
+          pettyCashOut: 35.00,
+          expectedCash: 900.00,
+          actualCashCount: 897.50,
+          cashVariance: -2.50,
+          cardSales: 450.00,
+          mobileSales: 150.00,
+          performedBy: 'Bob Shift Lead',
+          status: 'discrepancy',
+          cashBreakdown: {
+            bills: { hundred: 4, fifty: 4, twenty: 12, ten: 5, five: 1, one: 2 },
+            coins: { quarter: 2, dime: 0, nickel: 0, penny: 0 }
+          },
+          notes: 'Register was short by $2.50. Checked with cashier, probably gave wrong change.'
+        }
+      },
+      {
+        id: 'rep-3-days-ago',
+        date: date3,
+        completedAt: date3,
+        completedBy: 'Alice Manager',
+        status: 'completed',
+        salesSummary: {
+          totalTransactions: 124,
+          totalRevenue: 1710.20,
+          averageTransaction: 13.79
+        },
+        pettyCashSummary: {
+          totalIn: 0,
+          totalOut: 0,
+          netChange: 0
+        },
+        stockCheck: {
+          totalItems: 8,
+          itemsWithVariance: 0,
+          totalStockVariance: 0
+        },
+        cashReconciliation: {
+          id: 'rec-3-days-ago',
+          date: date3,
+          openingCash: 200,
+          totalSales: 940.20,
+          pettyCashIn: 0,
+          pettyCashOut: 0,
+          expectedCash: 1140.20,
+          actualCashCount: 1140.20,
+          cashVariance: 0,
+          cardSales: 520.00,
+          mobileSales: 250.00,
+          performedBy: 'Alice Manager',
+          status: 'verified',
+          cashBreakdown: {
+            bills: { hundred: 6, fifty: 6, twenty: 10, ten: 4, five: 0, one: 0 },
+            coins: { quarter: 0, dime: 2, nickel: 0, penny: 0 }
+          }
+        }
+      }
+    ]
+
+    endOfDayReports.value = seedReports
+    cashReconciliations.value = seedReports.map(r => r.cashReconciliation)
+    localStorage.setItem('judys_eod_reconciliations', JSON.stringify(cashReconciliations.value))
+    localStorage.setItem('judys_eod_reports', JSON.stringify(endOfDayReports.value))
+  }
+
+  function saveToStorage() {
+    localStorage.setItem('judys_eod_stock_checks', JSON.stringify(stockChecks.value))
+    localStorage.setItem('judys_eod_petty_cash', JSON.stringify(pettyCashEntries.value))
+    localStorage.setItem('judys_eod_reconciliations', JSON.stringify(cashReconciliations.value))
+    localStorage.setItem('judys_eod_reports', JSON.stringify(endOfDayReports.value))
+  }
+
   // Computed properties
   const todaysPettyCash = computed(() => {
     const today = new Date()
@@ -238,6 +436,7 @@ export const useEndOfDayStore = defineStore('endOfDay', () => {
     stockChecks.value.push(...currentStockCheck.value.map((item) => ({ ...item })))
 
     isStockCheckInProgress.value = false
+    saveToStorage()
     return true
   }
 
@@ -250,6 +449,7 @@ export const useEndOfDayStore = defineStore('endOfDay', () => {
     }
 
     pettyCashEntries.value.push(newEntry)
+    saveToStorage()
     return newEntry
   }
 
@@ -257,6 +457,7 @@ export const useEndOfDayStore = defineStore('endOfDay', () => {
     const index = pettyCashEntries.value.findIndex((entry) => entry.id === id)
     if (index !== -1) {
       pettyCashEntries.value[index] = { ...pettyCashEntries.value[index], ...updates }
+      saveToStorage()
     }
   }
 
@@ -264,6 +465,7 @@ export const useEndOfDayStore = defineStore('endOfDay', () => {
     const index = pettyCashEntries.value.findIndex((entry) => entry.id === id)
     if (index !== -1) {
       pettyCashEntries.value.splice(index, 1)
+      saveToStorage()
     }
   }
 
@@ -359,6 +561,7 @@ export const useEndOfDayStore = defineStore('endOfDay', () => {
 
     cashReconciliations.value.push(reconciliation)
     currentCashReconciliation.value = {}
+    saveToStorage()
 
     return reconciliation
   }
@@ -407,6 +610,7 @@ export const useEndOfDayStore = defineStore('endOfDay', () => {
     // Reset for next day
     currentStockCheck.value = []
     isStockCheckInProgress.value = false
+    saveToStorage()
 
     return report
   }

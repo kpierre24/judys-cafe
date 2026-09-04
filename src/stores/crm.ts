@@ -164,8 +164,62 @@ export interface CustomerAnalytics {
   churnRate: number
 }
 
+import { useSyncStore } from './sync'
+
 export const useCRMStore = defineStore('crm', () => {
   const branchesStore = useBranchesStore()
+
+  const loadBranchData = () => {
+    const saved = localStorage.getItem('judys_crm_branch_data')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        // Convert dates
+        for (const branchId in parsed) {
+          if (parsed[branchId].customers) {
+            parsed[branchId].customers = parsed[branchId].customers.map((c: any) => ({
+              ...c,
+              createdAt: new Date(c.createdAt),
+              dateOfBirth: c.dateOfBirth ? new Date(c.dateOfBirth) : undefined,
+              loyaltyCard: {
+                ...c.loyaltyCard,
+                joinDate: new Date(c.loyaltyCard.joinDate),
+                lastVisit: new Date(c.loyaltyCard.lastVisit)
+              }
+            }))
+          }
+          if (parsed[branchId].campaigns) {
+            parsed[branchId].campaigns = parsed[branchId].campaigns.map((c: any) => ({
+              ...c,
+              startDate: new Date(c.startDate),
+              endDate: new Date(c.endDate)
+            }))
+          }
+          if (parsed[branchId].feedback) {
+            parsed[branchId].feedback = parsed[branchId].feedback.map((f: any) => ({
+              ...f,
+              createdAt: new Date(f.createdAt),
+              resolvedAt: f.resolvedAt ? new Date(f.resolvedAt) : undefined,
+              response: f.response ? { ...f.response, respondedAt: new Date(f.response.respondedAt) } : undefined
+            }))
+          }
+          if (parsed[branchId].mobileOrders) {
+            parsed[branchId].mobileOrders = parsed[branchId].mobileOrders.map((o: any) => ({
+              ...o,
+              createdAt: new Date(o.createdAt),
+              scheduledTime: o.scheduledTime ? new Date(o.scheduledTime) : undefined,
+              confirmedAt: o.confirmedAt ? new Date(o.confirmedAt) : undefined,
+              completedAt: o.completedAt ? new Date(o.completedAt) : undefined
+            }))
+          }
+        }
+        return parsed
+      } catch (e) {
+        console.error('Failed to parse CRM branch data', e)
+      }
+    }
+    return {}
+  }
 
   // Branch-specific data
   const branchData = ref<
@@ -179,7 +233,11 @@ export const useCRMStore = defineStore('crm', () => {
         mobileOrders: MobileOrder[]
       }
     >
-  >({})
+  >(loadBranchData())
+
+  function saveToStorage() {
+    localStorage.setItem('judys_crm_branch_data', JSON.stringify(branchData.value))
+  }
 
   // Helper functions
   function getCurrentBranchData() {
@@ -302,7 +360,7 @@ export const useCRMStore = defineStore('crm', () => {
   function getDefaultLoyaltyProgram(branchId: string): LoyaltyProgram {
     return {
       id: 'loyalty-1',
-      name: "Judy's Rewards",
+      name: "Judy's Roastery Rewards",
       description: 'Earn points with every purchase and unlock exclusive rewards!',
       pointsPerDollar: 10,
       tiers: [
@@ -539,7 +597,7 @@ export const useCRMStore = defineStore('crm', () => {
   })
 
   const topCustomers = computed(() => {
-    return customers.value
+    return [...customers.value]
       .sort((a, b) => b.loyaltyCard.totalSpent - a.loyaltyCard.totalSpent)
       .slice(0, 10)
   })
@@ -549,7 +607,7 @@ export const useCRMStore = defineStore('crm', () => {
   })
 
   const customerAnalytics = computed((): CustomerAnalytics => {
-    const totalCustomers = customers.value.length
+    const totalCustomers = customers.value.length || 1
     const thisMonth = new Date()
     thisMonth.setDate(1)
 
@@ -569,13 +627,13 @@ export const useCRMStore = defineStore('crm', () => {
     const customerLifetimeValue = averageSpendPerCustomer * 2.5 // Estimated
 
     return {
-      totalCustomers,
+      totalCustomers: customers.value.length,
       newCustomersThisMonth,
       averageSpendPerCustomer,
       customerRetentionRate: 85.5, // Mock data
       loyaltyProgramParticipation: loyaltyParticipation,
       topSpenders: topCustomers.value.slice(0, 5),
-      frequentVisitors: customers.value
+      frequentVisitors: [...customers.value]
         .sort((a, b) => b.loyaltyCard.visitCount - a.loyaltyCard.visitCount)
         .slice(0, 5),
       customerLifetimeValue,
@@ -608,6 +666,20 @@ export const useCRMStore = defineStore('crm', () => {
     }
 
     data.customers.push(newCustomer)
+    saveToStorage()
+
+    // Sync with Supabase
+    const syncStore = useSyncStore()
+    syncStore.queueAction('customers', 'insert', {
+      id: newCustomer.id,
+      first_name: newCustomer.firstName,
+      last_name: newCustomer.lastName,
+      email: newCustomer.email,
+      phone: newCustomer.phone,
+      points: newCustomer.loyaltyCard.points,
+      loyalty_tier: newCustomer.loyaltyCard.tier,
+      branch_id: branchesStore.selectedBranchId!
+    })
   }
 
   function updateCustomer(customerId: string, updates: Partial<Customer>) {
@@ -615,6 +687,21 @@ export const useCRMStore = defineStore('crm', () => {
     const customerIndex = data.customers.findIndex((customer) => customer.id === customerId)
     if (customerIndex !== -1) {
       data.customers[customerIndex] = { ...data.customers[customerIndex], ...updates }
+      saveToStorage()
+
+      // Sync with Supabase
+      const syncStore = useSyncStore()
+      const updated = data.customers[customerIndex]
+      syncStore.queueAction('customers', 'update', {
+        id: updated.id,
+        first_name: updated.firstName,
+        last_name: updated.lastName,
+        email: updated.email,
+        phone: updated.phone,
+        points: updated.loyaltyCard.points,
+        loyalty_tier: updated.loyaltyCard.tier,
+        branch_id: branchesStore.selectedBranchId!
+      })
     }
   }
 
@@ -634,6 +721,21 @@ export const useCRMStore = defineStore('crm', () => {
           break
         }
       }
+
+      saveToStorage()
+
+      // Sync updated points & tier with Supabase
+      const syncStore = useSyncStore()
+      syncStore.queueAction('customers', 'update', {
+        id: customer.id,
+        first_name: customer.firstName,
+        last_name: customer.lastName,
+        email: customer.email,
+        phone: customer.phone,
+        points: customer.loyaltyCard.points,
+        loyalty_tier: customer.loyaltyCard.tier,
+        branch_id: branchesStore.selectedBranchId!
+      })
     }
   }
 
@@ -645,6 +747,21 @@ export const useCRMStore = defineStore('crm', () => {
     if (customer && reward && customer.loyaltyCard.points >= reward.pointsCost) {
       customer.loyaltyCard.points -= reward.pointsCost
       reward.currentRedemptions++
+      saveToStorage()
+
+      // Sync points decrement to Supabase
+      const syncStore = useSyncStore()
+      syncStore.queueAction('customers', 'update', {
+        id: customer.id,
+        first_name: customer.firstName,
+        last_name: customer.lastName,
+        email: customer.email,
+        phone: customer.phone,
+        points: customer.loyaltyCard.points,
+        loyalty_tier: customer.loyaltyCard.tier,
+        branch_id: branchesStore.selectedBranchId!
+      })
+
       return true
     }
     return false
@@ -662,6 +779,7 @@ export const useCRMStore = defineStore('crm', () => {
       branchId: branchesStore.selectedBranchId!,
     }
     data.feedback.push(newFeedback)
+    saveToStorage()
   }
 
   function respondToFeedback(feedbackId: string, response: string, respondedBy: string) {
@@ -674,6 +792,7 @@ export const useCRMStore = defineStore('crm', () => {
         respondedAt: new Date(),
       }
       data.feedback[feedbackIndex].status = 'responded'
+      saveToStorage()
     }
   }
 
@@ -692,6 +811,7 @@ export const useCRMStore = defineStore('crm', () => {
       },
     }
     data.campaigns.push(newCampaign)
+    saveToStorage()
   }
 
   function placeMobileOrder(order: Omit<MobileOrder, 'id' | 'createdAt' | 'status'>) {
@@ -707,6 +827,7 @@ export const useCRMStore = defineStore('crm', () => {
     // Add loyalty points to customer
     const pointsEarned = Math.floor(order.total * (data.loyaltyProgram.pointsPerDollar || 10))
     addLoyaltyPoints(order.customerId, pointsEarned)
+    saveToStorage()
   }
 
   return {
@@ -734,3 +855,5 @@ export const useCRMStore = defineStore('crm', () => {
     placeMobileOrder,
   }
 })
+
+export const useCrmStore = useCRMStore

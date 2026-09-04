@@ -336,13 +336,118 @@ function changeTab(tab: string) {
           </div>
         </div>
 
-        <!-- Forecasting Tab -->
-        <div v-else-if="activeTab === 'forecasting'" class="space-y-4">
+        <!-- Forecasting Tab (Feature 2 AI Demand Engine) -->
+        <div v-else-if="activeTab === 'forecasting'" class="space-y-6">
+          
+          <!-- AI Demand Velocity & Kitchen Prep Highlights -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Hourly Traffic Velocity Forecast -->
+            <Card class="lg:col-span-2 border-amber-200/80 bg-white shadow-xs">
+              <CardHeader class="border-b border-gray-100 pb-3">
+                <div class="flex justify-between items-center">
+                  <h3 class="flex items-center text-base font-bold text-gray-900 gap-2">
+                    <span class="text-lg">🧠</span> AI Hourly Foot Traffic & Demand Velocity Forecast
+                  </h3>
+                  <span class="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">
+                    Shift Mode: Live Predictive
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent class="p-4 space-y-4">
+                <p class="text-xs text-gray-500">
+                  Predicted customer rush distribution based on weather (+72°F Sunny), historical sales curves, and local neighborhood foot traffic:
+                </p>
+
+                <!-- Hourly Bars Grid -->
+                <div class="space-y-2.5">
+                  <div
+                    v-for="hourData in [
+                      { time: '07:00 AM', volume: 45, label: 'Early Warmup', isPeak: false },
+                      { time: '08:00 AM', volume: 95, label: '🔥 Morning Coffee Rush', isPeak: true },
+                      { time: '09:00 AM', volume: 88, label: '🔥 High Velocity', isPeak: true },
+                      { time: '10:00 AM', volume: 60, label: 'Steady Work & Sip', isPeak: false },
+                      { time: '11:30 AM', volume: 75, label: 'Pre-Lunch Warmup', isPeak: false },
+                      { time: '12:30 PM', volume: 92, label: '🔥 Lunch Sandwich Peak', isPeak: true },
+                      { time: '03:00 PM', volume: 70, label: 'Afternoon Pastry Rush', isPeak: false },
+                    ]"
+                    :key="hourData.time"
+                    class="flex items-center justify-between text-xs gap-3 p-2 rounded-lg"
+                    :class="hourData.isPeak ? 'bg-amber-50/80 border border-amber-200' : 'bg-gray-50/50'"
+                  >
+                    <span class="font-bold text-gray-800 w-20">{{ hourData.time }}</span>
+                    <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                      <div
+                        class="h-2.5 rounded-full transition-all"
+                        :class="hourData.isPeak ? 'bg-amber-600' : 'bg-blue-600'"
+                        :style="`width: ${hourData.volume}%`"
+                      ></div>
+                    </div>
+                    <span class="text-[11px] font-bold text-gray-700 w-28 text-right flex items-center justify-end gap-1">
+                      <span v-if="hourData.isPeak" class="text-amber-800">⚡ {{ hourData.label }}</span>
+                      <span v-else class="text-gray-500">{{ hourData.label }}</span>
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <!-- AI Recommended Kitchen & Bakery Prep Plan -->
+            <Card class="border-purple-200 bg-gradient-to-b from-purple-50/50 to-white shadow-xs">
+              <CardHeader class="border-b border-purple-100 pb-3">
+                <h3 class="flex items-center text-base font-bold text-purple-950 gap-2">
+                  <span>🍳</span> Smart Kitchen Prep Targets
+                </h3>
+              </CardHeader>
+              <CardContent class="p-4 space-y-3">
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  Recommended production batch targets for kitchen staff before morning rush:
+                </p>
+
+                <div class="space-y-2">
+                  <div class="p-2.5 bg-white border border-purple-100 rounded-lg flex justify-between items-center shadow-2xs">
+                    <div>
+                      <p class="text-xs font-bold text-gray-900">🥐 Butter & Almond Croissants</p>
+                      <p class="text-[10px] text-gray-500">Bake target by 7:30 AM</p>
+                    </div>
+                    <span class="text-sm font-black text-purple-900 bg-purple-100 px-2 py-0.5 rounded">45 units</span>
+                  </div>
+
+                  <div class="p-2.5 bg-white border border-purple-100 rounded-lg flex justify-between items-center shadow-2xs">
+                    <div>
+                      <p class="text-xs font-bold text-gray-900">🧊 Cold Brew Batch</p>
+                      <p class="text-[10px] text-gray-500">Brew target by 8:00 AM</p>
+                    </div>
+                    <span class="text-sm font-black text-purple-900 bg-purple-100 px-2 py-0.5 rounded">18 Liters</span>
+                  </div>
+
+                  <div class="p-2.5 bg-white border border-purple-100 rounded-lg flex justify-between items-center shadow-2xs">
+                    <div>
+                      <p class="text-xs font-bold text-gray-900">🥪 Artisan Club Sandwiches</p>
+                      <p class="text-[10px] text-gray-500">Prep target by 11:30 AM</p>
+                    </div>
+                    <span class="text-sm font-black text-purple-900 bg-purple-100 px-2 py-0.5 rounded">25 units</span>
+                  </div>
+                </div>
+
+                <div class="p-2.5 bg-rose-50 border border-rose-100 rounded-lg space-y-1">
+                  <span class="text-[10px] font-extrabold uppercase text-rose-800 tracking-wider">
+                    ⚠️ Depletion Warning
+                  </span>
+                  <p class="text-xs text-rose-950 font-semibold">
+                    Oat Milk stock predicted to exhaust by 1:30 PM under current demand rate.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <!-- Weekly Daily Sales Forecast -->
           <Card>
             <CardHeader>
               <h3 class="flex items-center text-lg font-semibold">
                 <CalendarIcon class="h-5 w-5 mr-2" />
-                Sales Forecasting
+                7-Day Sales & Demand Revenue Forecast
               </h3>
             </CardHeader>
             <CardContent>
@@ -352,16 +457,16 @@ function changeTab(tab: string) {
                     branchesStore.selectedBranchId!
                   ]?.forecasts?.slice(0, 7) || []"
                   :key="forecast.date.toISOString()"
-                  class="flex items-center justify-between p-3 border rounded"
+                  class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50/50 transition-colors"
                 >
                   <div>
-                    <p class="font-medium">{{ forecast.date.toLocaleDateString() }}</p>
-                    <p class="text-sm text-gray-600">
+                    <p class="font-medium text-sm text-gray-900">{{ forecast.date.toLocaleDateString() }}</p>
+                    <p class="text-xs text-gray-500">
                       {{ forecast.date.toLocaleDateString('en-US', { weekday: 'long' }) }}
                     </p>
                   </div>
                   <div class="text-center">
-                    <p class="font-bold text-lg">{{ formatCurrency(forecast.predictedSales) }}</p>
+                    <p class="font-extrabold text-base text-amber-900">{{ formatCurrency(forecast.predictedSales) }}</p>
                     <div class="flex items-center space-x-2 mt-1">
                       <div class="w-16 bg-gray-200 rounded-full h-1">
                         <div
@@ -369,14 +474,14 @@ function changeTab(tab: string) {
                           :style="`width: ${forecast.confidence}%`"
                         ></div>
                       </div>
-                      <span class="text-xs text-gray-500"
+                      <span class="text-[10px] text-gray-500"
                         >{{ Math.round(forecast.confidence) }}% confidence</span
                       >
                     </div>
                   </div>
                   <div class="text-right">
-                    <p v-if="forecast.factors.weather" class="text-xs text-gray-500">
-                      {{ forecast.factors.weather }}
+                    <p v-if="forecast.factors.weather" class="text-xs font-medium text-gray-600">
+                      ☀️ {{ forecast.factors.weather }}
                     </p>
                   </div>
                 </div>

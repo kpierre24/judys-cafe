@@ -588,7 +588,7 @@ onMounted(() => {
 
           <div class="text-center border-t pt-4 mt-4 text-xs">
             <p>Payment Method: {{ selectedReceipt.paymentMethod.toUpperCase() }}</p>
-            <p class="mt-2">Thank you for visiting Judy's Cafe!</p>
+            <p class="mt-2 font-medium">Thank you for visiting Judy's Cafe & Roastery!</p>
             <p>Have a great day!</p>
           </div>
         </div>

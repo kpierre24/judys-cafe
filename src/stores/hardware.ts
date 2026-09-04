@@ -535,12 +535,98 @@ export const useHardwareStore = defineStore('hardware', () => {
                 calories: 180,
                 prepTime: 4,
               },
+              {
+                id: 'item-6',
+                productId: '6',
+                name: 'Espresso Double Shot',
+                description: 'Strong, complex and concentrated house espresso blend',
+                price: 2.5,
+                isAvailable: true,
+                isPopular: false,
+                isNew: false,
+                dietary: ['vegan'],
+                calories: 5,
+                prepTime: 1,
+              },
+              {
+                id: 'item-9',
+                productId: '9',
+                name: 'Flat White',
+                description: 'Velvety microfoam poured over a double shot of organic espresso',
+                price: 4.25,
+                isAvailable: true,
+                isPopular: false,
+                isNew: false,
+                dietary: ['vegetarian'],
+                calories: 120,
+                prepTime: 3,
+              },
+              {
+                id: 'item-10',
+                productId: '10',
+                name: 'Matcha Latte',
+                description: 'Stone-ground green tea whisked with creamy steamed milk',
+                price: 4.95,
+                isAvailable: true,
+                isPopular: true,
+                isNew: true,
+                dietary: ['vegetarian'],
+                calories: 160,
+                prepTime: 3,
+              },
+              {
+                id: 'item-11',
+                productId: '11',
+                name: 'Chai Tea Latte',
+                description: 'Aromatic spiced black tea infusion with warm steamed milk',
+                price: 4.75,
+                isAvailable: true,
+                isPopular: false,
+                isNew: false,
+                dietary: ['vegetarian'],
+                calories: 220,
+                prepTime: 2,
+              },
+              {
+                id: 'item-12',
+                productId: '12',
+                name: 'Cold Brew Coffee',
+                description: 'Slow-steeped for 18 hours in cold water for a super smooth finish',
+                price: 4.0,
+                isAvailable: true,
+                isPopular: false,
+                isNew: false,
+                dietary: ['vegan'],
+                calories: 5,
+                prepTime: 1,
+              },
             ],
           },
           {
             id: 'food',
-            name: 'Fresh Food',
+            name: 'Fresh Food & Savory',
             displayOrder: 2,
+            isVisible: true,
+            items: [
+              {
+                id: 'item-8',
+                productId: '8',
+                name: 'Club Sandwich',
+                description: 'Triple-layer sandwich with turkey, crisp bacon, lettuce, tomato, and garlic aioli',
+                price: 8.5,
+                isAvailable: true,
+                isPopular: true,
+                isNew: false,
+                dietary: [],
+                calories: 620,
+                prepTime: 8,
+              },
+            ],
+          },
+          {
+            id: 'pastries',
+            name: 'Bakery & Pastries',
+            displayOrder: 3,
             isVisible: true,
             items: [
               {
@@ -548,7 +634,7 @@ export const useHardwareStore = defineStore('hardware', () => {
                 productId: '4',
                 name: 'Butter Croissant',
                 description: 'Flaky, buttery pastry baked fresh daily',
-                price: 2.5,
+                price: 3.5,
                 isAvailable: true,
                 isPopular: false,
                 isNew: false,
@@ -561,12 +647,90 @@ export const useHardwareStore = defineStore('hardware', () => {
                 productId: '5',
                 name: 'Blueberry Muffin',
                 description: 'Moist muffin packed with fresh blueberries',
-                price: 2.75,
-                isAvailable: false,
+                price: 4.25,
+                isAvailable: true,
                 isPopular: true,
                 isNew: false,
                 dietary: ['vegetarian'],
                 calories: 320,
+                prepTime: 1,
+              },
+              {
+                id: 'item-13',
+                productId: '13',
+                name: 'Almond Croissant',
+                description: 'Flaky pastry filled with rich sweet frangipane almond cream and sliced almonds',
+                price: 4.25,
+                isAvailable: true,
+                isPopular: true,
+                isNew: false,
+                dietary: ['vegetarian'],
+                calories: 380,
+                prepTime: 1,
+              },
+              {
+                id: 'item-14',
+                productId: '14',
+                name: 'Cinnamon Roll',
+                description: 'Warm brioche roll swirled with cinnamon and finished with cream cheese glaze',
+                price: 4.5,
+                isAvailable: true,
+                isPopular: true,
+                isNew: true,
+                dietary: ['vegetarian'],
+                calories: 420,
+                prepTime: 2,
+              },
+              {
+                id: 'item-15',
+                productId: '15',
+                name: 'Pain au Chocolat',
+                description: 'Classic buttery French pastry filled with semi-sweet dark chocolate',
+                price: 3.95,
+                isAvailable: true,
+                isPopular: false,
+                isNew: false,
+                dietary: ['vegetarian'],
+                calories: 310,
+                prepTime: 1,
+              },
+              {
+                id: 'item-16',
+                productId: '16',
+                name: 'French Macarons',
+                description: 'Six delicate almond-meringue cookies in chocolate, raspberry & vanilla',
+                price: 8.5,
+                isAvailable: true,
+                isPopular: false,
+                isNew: true,
+                dietary: ['gluten-free', 'vegetarian'],
+                calories: 190,
+                prepTime: 1,
+              },
+              {
+                id: 'item-17',
+                productId: '17',
+                name: 'Raspberry Scone',
+                description: 'Golden, crumbly scone studded with fresh raspberries and lemon glaze',
+                price: 3.75,
+                isAvailable: true,
+                isPopular: false,
+                isNew: false,
+                dietary: ['vegetarian'],
+                calories: 290,
+                prepTime: 1,
+              },
+              {
+                id: 'item-18',
+                productId: '18',
+                name: 'Matcha Crepe Cake',
+                description: 'Over twenty delicate crepe layers with matcha cream',
+                price: 6.5,
+                isAvailable: true,
+                isPopular: false,
+                isNew: true,
+                dietary: ['vegetarian'],
+                calories: 340,
                 prepTime: 1,
               },
             ],
@@ -793,13 +957,13 @@ export const useHardwareStore = defineStore('hardware', () => {
 
   const activeKitchenOrders = computed(() =>
     currentBranchKitchenOrders.value.filter((order) =>
-      ['new', 'acknowledged', 'preparing'].includes(order.status),
+      ['new', 'acknowledged', 'preparing', 'ready'].includes(order.status),
     ),
   )
 
   const completedKitchenOrders = computed(() =>
     currentBranchKitchenOrders.value.filter((order) =>
-      ['ready', 'completed'].includes(order.status),
+      ['completed'].includes(order.status),
     ),
   )
 
@@ -1284,6 +1448,79 @@ export const useHardwareStore = defineStore('hardware', () => {
     }
   }
 
+  const addMenuItem = (categoryId: string, item: Omit<MenuBoardItem, 'id'>) => {
+    const branchId = branchesStore.selectedBranchId
+    if (!branchId || !menuBoardContent.value[branchId]) return
+
+    const category = menuBoardContent.value[branchId].categories.find((c) => c.id === categoryId)
+    if (category) {
+      const newItem: MenuBoardItem = {
+        ...item,
+        id: `item-${Date.now()}`,
+      }
+      category.items.push(newItem)
+      updateMenuBoardContent({ lastModified: new Date() })
+      return newItem.id
+    }
+  }
+
+  const updateMenuItem = (categoryId: string, itemId: string, updatedItem: Partial<MenuBoardItem>) => {
+    const branchId = branchesStore.selectedBranchId
+    if (!branchId || !menuBoardContent.value[branchId]) return
+
+    const category = menuBoardContent.value[branchId].categories.find((c) => c.id === categoryId)
+    if (category) {
+      const item = category.items.find((i) => i.id === itemId)
+      if (item) {
+        Object.assign(item, updatedItem)
+        updateMenuBoardContent({ lastModified: new Date() })
+      }
+    }
+  }
+
+  const deleteMenuItem = (categoryId: string, itemId: string) => {
+    const branchId = branchesStore.selectedBranchId
+    if (!branchId || !menuBoardContent.value[branchId]) return
+
+    const category = menuBoardContent.value[branchId].categories.find((c) => c.id === categoryId)
+    if (category) {
+      const index = category.items.findIndex((i) => i.id === itemId)
+      if (index !== -1) {
+        category.items.splice(index, 1)
+        updateMenuBoardContent({ lastModified: new Date() })
+      }
+    }
+  }
+
+  const addCategory = (categoryName: string) => {
+    const branchId = branchesStore.selectedBranchId
+    if (!branchId || !menuBoardContent.value[branchId]) return
+
+    const categories = menuBoardContent.value[branchId].categories
+    const newCategory: MenuCategory = {
+      id: `cat-${Date.now()}`,
+      name: categoryName,
+      displayOrder: categories.length + 1,
+      isVisible: true,
+      items: [],
+    }
+    categories.push(newCategory)
+    updateMenuBoardContent({ lastModified: new Date() })
+    return newCategory.id
+  }
+
+  const deleteCategory = (categoryId: string) => {
+    const branchId = branchesStore.selectedBranchId
+    if (!branchId || !menuBoardContent.value[branchId]) return
+
+    const categories = menuBoardContent.value[branchId].categories
+    const index = categories.findIndex((c) => c.id === categoryId)
+    if (index !== -1) {
+      categories.splice(index, 1)
+      updateMenuBoardContent({ lastModified: new Date() })
+    }
+  }
+
   // IoT Monitoring Functions
   const acknowledgeAlert = (alertId: string) => {
     const branchId = branchesStore.selectedBranchId
@@ -1505,6 +1742,11 @@ export const useHardwareStore = defineStore('hardware', () => {
     removePromotion,
     updateMenuBoardSettings,
     refreshMenuBoard,
+    addMenuItem,
+    updateMenuItem,
+    deleteMenuItem,
+    addCategory,
+    deleteCategory,
 
     // IoT Monitoring Actions
     acknowledgeAlert,

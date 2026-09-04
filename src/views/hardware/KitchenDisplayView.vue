@@ -26,7 +26,7 @@ const branchesStore = useBranchesStore()
 const selectedStation = ref<'all' | 'grill' | 'cold_prep' | 'coffee' | 'dessert'>('all')
 const autoRefresh = ref(true)
 const showSettings = ref(false)
-const refreshInterval = ref<NodeJS.Timeout | null>(null)
+const refreshInterval = ref<any>(null)
 const currentTime = ref(new Date())
 
 // Settings
@@ -41,7 +41,7 @@ const tempSettings = ref({
 
 // Computed
 const filteredOrders = computed(() => {
-  return hardwareStore.getOrdersByStation(selectedStation.value).sort((a, b) => {
+  return [...hardwareStore.getOrdersByStation(selectedStation.value)].sort((a, b) => {
     // Sort by priority (urgent > high > normal) then by received time
     const priorityOrder = { urgent: 3, high: 2, normal: 1 }
     const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority]
@@ -87,6 +87,72 @@ const systemStatus = computed(() => {
 })
 
 // Functions
+function playKDSChime(type: 'new_order' | 'warning' | 'critical') {
+  if (!tempSettings.value.soundAlerts) return
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) return
+    const ctx = new AudioCtx()
+
+    if (type === 'new_order') {
+      const now = ctx.currentTime
+      const osc1 = ctx.createOscillator()
+      const gain1 = ctx.createGain()
+      osc1.type = 'sine'
+      osc1.frequency.setValueAtTime(880, now)
+      gain1.gain.setValueAtTime(0.3, now)
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3)
+      osc1.connect(gain1)
+      gain1.connect(ctx.destination)
+      osc1.start(now)
+      osc1.stop(now + 0.3)
+
+      const osc2 = ctx.createOscillator()
+      const gain2 = ctx.createGain()
+      osc2.type = 'sine'
+      osc2.frequency.setValueAtTime(1174.66, now + 0.15)
+      gain2.gain.setValueAtTime(0.3, now + 0.15)
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45)
+      osc2.connect(gain2)
+      gain2.connect(ctx.destination)
+      osc2.start(now + 0.15)
+      osc2.stop(now + 0.45)
+    } else if (type === 'warning') {
+      const now = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(600, now)
+      gain.gain.setValueAtTime(0.25, now)
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.2)
+    } else if (type === 'critical') {
+      const now = ctx.currentTime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(950, now)
+      gain.gain.setValueAtTime(0.35, now)
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now)
+      osc.stop(now + 0.4)
+    }
+  } catch (err) {
+    console.warn('AudioContext playback error:', err)
+  }
+}
+
+function getUrgencyLevel(elapsedMinutes: number) {
+  if (elapsedMinutes >= 10) return 'critical'
+  if (elapsedMinutes >= 5) return 'warning'
+  return 'normal'
+}
+
 function getOrderElapsedTime(order: KitchenOrder) {
   const startTime = order.startTime || order.receivedAt
   return Math.floor((currentTime.value.getTime() - startTime.getTime()) / 60000)
@@ -161,6 +227,7 @@ function toggleItemStatus(
 
 function addTestOrder() {
   hardwareStore.simulateNewKitchenOrder()
+  playKDSChime('new_order')
 }
 
 function changeStation(station: typeof selectedStation.value) {
@@ -259,7 +326,25 @@ onUnmounted(() => {
           </div>
 
           <!-- Controls -->
-          <div class="flex space-x-2">
+          <div class="flex items-center space-x-2">
+            <Button
+              @click="tempSettings.soundAlerts = !tempSettings.soundAlerts"
+              :class="tempSettings.soundAlerts ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-gray-700 text-gray-400'"
+              title="Toggle audio chime alerts"
+            >
+              <BellIcon class="h-4 w-4 mr-1" />
+              {{ tempSettings.soundAlerts ? 'Sound ON' : 'Muted' }}
+            </Button>
+
+            <Button
+              @click="playKDSChime('new_order')"
+              variant="outline"
+              class="border-gray-600 text-gray-300 text-xs"
+              title="Test chime sound"
+            >
+              🔊 Test Sound
+            </Button>
+
             <Button @click="addTestOrder" class="bg-green-600 hover:bg-green-700">
               + New Order
             </Button>
@@ -313,12 +398,28 @@ onUnmounted(() => {
           v-for="order in filteredOrders.slice(0, tempSettings.maxOrdersPerScreen)"
           :key="order.id"
           :class="[
-            'bg-gray-800 rounded-lg border-2 p-4 transition-all duration-200',
+            'bg-gray-800 rounded-lg border-2 p-4 transition-all duration-200 relative overflow-hidden',
             getOrderStatusColor(order.status),
-            order.priority === 'urgent' ? 'ring-2 ring-red-500 animate-pulse' : '',
-            order.priority === 'high' ? 'ring-1 ring-orange-400' : '',
+            getOrderElapsedTime(order) >= 10 || order.priority === 'urgent' ? 'ring-2 ring-red-500 animate-pulse border-red-500' : '',
+            getOrderElapsedTime(order) >= 5 && getOrderElapsedTime(order) < 10 ? 'ring-2 ring-amber-400 border-amber-400' : '',
+            order.priority === 'high' && getOrderElapsedTime(order) < 5 ? 'ring-1 ring-orange-400' : '',
           ]"
         >
+          <!-- Urgency Badge Banner -->
+          <div
+            v-if="getOrderElapsedTime(order) >= 10"
+            class="bg-red-600 text-white text-[11px] font-extrabold uppercase px-2 py-1 mb-2.5 rounded flex justify-between items-center animate-bounce"
+          >
+            <span>🔥 10m+ OVERDUE ESCALATION</span>
+            <span>CRITICAL</span>
+          </div>
+          <div
+            v-else-if="getOrderElapsedTime(order) >= 5"
+            class="bg-amber-500 text-amber-950 text-[11px] font-extrabold uppercase px-2 py-1 mb-2.5 rounded flex justify-between items-center"
+          >
+            <span>⏳ 5m+ PREP THRESHOLD ALERT</span>
+            <span>WARNING</span>
+          </div>
           <!-- Order Header -->
           <div class="flex justify-between items-start mb-3">
             <div>

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useBranchesStore } from './branches'
 
 export interface Supplier {
@@ -91,8 +91,47 @@ export interface StockAlert {
   branchId: string
 }
 
+import { useSyncStore } from './sync'
+
 export const useInventoryStore = defineStore('inventory', () => {
   const branchesStore = useBranchesStore()
+
+  const loadBranchData = () => {
+    const saved = localStorage.getItem('judys_inventory_branch_data')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        // Convert dates
+        for (const branchId in parsed) {
+          if (parsed[branchId].inventoryItems) {
+            parsed[branchId].inventoryItems = parsed[branchId].inventoryItems.map((item: any) => ({
+              ...item,
+              expiryDate: item.expiryDate ? new Date(item.expiryDate) : undefined,
+              lastRestocked: item.lastRestocked ? new Date(item.lastRestocked) : new Date()
+            }))
+          }
+          if (parsed[branchId].purchaseOrders) {
+            parsed[branchId].purchaseOrders = parsed[branchId].purchaseOrders.map((po: any) => ({
+              ...po,
+              orderDate: new Date(po.orderDate),
+              expectedDeliveryDate: new Date(po.expectedDeliveryDate),
+              actualDeliveryDate: po.actualDeliveryDate ? new Date(po.actualDeliveryDate) : undefined
+            }))
+          }
+          if (parsed[branchId].stockAlerts) {
+            parsed[branchId].stockAlerts = parsed[branchId].stockAlerts.map((alert: any) => ({
+              ...alert,
+              createdAt: new Date(alert.createdAt)
+            }))
+          }
+        }
+        return parsed
+      } catch (e) {
+        console.error('Failed to parse inventory branch data', e)
+      }
+    }
+    return {}
+  }
 
   // Branch-specific data
   const branchData = ref<
@@ -105,7 +144,12 @@ export const useInventoryStore = defineStore('inventory', () => {
         stockAlerts: StockAlert[]
       }
     >
-  >({})
+  >(loadBranchData())
+
+  function saveToStorage() {
+    localStorage.setItem('judys_inventory_branch_data', JSON.stringify(branchData.value))
+    localStorage.setItem('judys_inventory_suppliers', JSON.stringify(suppliers.value))
+  }
 
   // Global data (shared across branches)
   const suppliers = ref<Supplier[]>([
@@ -161,7 +205,12 @@ export const useInventoryStore = defineStore('inventory', () => {
     }
 
     if (!branchData.value[branchId]) {
-      initializeBranchData(branchId)
+      return {
+        inventoryItems: [],
+        recipes: [],
+        purchaseOrders: [],
+        stockAlerts: [],
+      }
     }
 
     return branchData.value[branchId]
@@ -178,6 +227,17 @@ export const useInventoryStore = defineStore('inventory', () => {
     // Generate initial stock alerts
     generateStockAlerts(branchId)
   }
+
+  // Watch for branch selection changes to proactively initialize branch data
+  watch(
+    () => branchesStore.selectedBranchId,
+    (newBranchId) => {
+      if (newBranchId && !branchData.value[newBranchId]) {
+        initializeBranchData(newBranchId)
+      }
+    },
+    { immediate: true }
+  )
 
   function getDefaultInventoryItems(): InventoryItem[] {
     const now = new Date()
@@ -552,6 +612,23 @@ export const useInventoryStore = defineStore('inventory', () => {
       checkAutoReorder(branchesStore.selectedBranchId!)
     }
 
+    saveToStorage()
+
+    // Sync with Supabase
+    const syncStore = useSyncStore()
+    syncStore.queueAction('inventory_items', 'update', {
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      current_stock: item.currentStock,
+      min_threshold: item.minimumStock,
+      max_threshold: item.maximumStock,
+      unit: item.unit,
+      cost_price: item.unitCost,
+      supplier_id: item.supplierId,
+      branch_id: branchesStore.selectedBranchId!
+    })
+
     return true
   }
 
@@ -565,6 +642,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     const alert = data.stockAlerts.find((a) => a.id === alertId)
     if (alert) {
       alert.isRead = true
+      saveToStorage()
     }
   }
 
@@ -579,6 +657,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
     // Regenerate alerts
     generateStockAlerts(branchesStore.selectedBranchId!)
+    saveToStorage()
   }
 
   function updateInventoryItem(itemId: string, updates: Partial<InventoryItem>) {
@@ -589,6 +668,23 @@ export const useInventoryStore = defineStore('inventory', () => {
 
       // Regenerate alerts
       generateStockAlerts(branchesStore.selectedBranchId!)
+      saveToStorage()
+
+      // Sync with Supabase
+      const syncStore = useSyncStore()
+      const updatedItem = data.inventoryItems[itemIndex]
+      syncStore.queueAction('inventory_items', 'update', {
+        id: updatedItem.id,
+        name: updatedItem.name,
+        category: updatedItem.category,
+        current_stock: updatedItem.currentStock,
+        min_threshold: updatedItem.minimumStock,
+        max_threshold: updatedItem.maximumStock,
+        unit: updatedItem.unit,
+        cost_price: updatedItem.unitCost,
+        supplier_id: updatedItem.supplierId,
+        branch_id: branchesStore.selectedBranchId!
+      })
     }
   }
 
@@ -600,12 +696,14 @@ export const useInventoryStore = defineStore('inventory', () => {
       onTimeDeliveries: 0,
     }
     suppliers.value.push(newSupplier)
+    saveToStorage()
   }
 
   function updateSupplier(supplierId: string, updates: Partial<Supplier>) {
     const supplierIndex = suppliers.value.findIndex((s) => s.id === supplierId)
     if (supplierIndex !== -1) {
       suppliers.value[supplierIndex] = { ...suppliers.value[supplierIndex], ...updates }
+      saveToStorage()
     }
   }
 
@@ -624,6 +722,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     }
 
     data.recipes.push(newRecipe)
+    saveToStorage()
   }
 
   function updateRecipe(recipeId: string, updates: Partial<Recipe>) {
